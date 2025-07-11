@@ -14,10 +14,11 @@ public class InventoryUI : MonoBehaviour
     // Eğer PlayerInventory hâlâ kullanılıyorsa burası kalabilir, yoksa silebiliriz.
     void Update()
     {
-        stoneText.text = "Stone: " + stoneCount;
-        woodText.text = "Wood: " + woodCount;
-        meteoriteText.text = "Meteorite: " + meteoriteCount;
+        stoneText.text = "Stone: " + PlayerInventory.Instance.GetAmount("Stone");
+        woodText.text = "Wood: " + PlayerInventory.Instance.GetAmount("Wood");
+        meteoriteText.text = "Meteorite: " + PlayerInventory.Instance.GetAmount("Meteorite");
     }
+
 
     public void AddResource(ResourceType type, int amount)
     {

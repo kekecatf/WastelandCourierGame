@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 7644112909640826221}
   m_Layer: 0
   m_Name: Enemy
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -165,6 +165,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41bec1f91b7cbe44f9eb54a1551e63bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 2
-  damage: 1
+  maxHealth: 5
+  hpBarPrefab: {fileID: 703183713388882252, guid: 5c650d700cb2738419891bde02ea05ab, type: 3}
   target: {fileID: 6370573785070047475, guid: 07166245952cd734daa010f4526e861c, type: 3}

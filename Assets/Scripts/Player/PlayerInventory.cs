@@ -26,4 +26,15 @@ public class PlayerInventory : MonoBehaviour
     {
         return resources.ContainsKey(type) ? resources[type] : 0;
     }
+
+    public bool Remove(string type, int amount)
+    {
+        if (resources.ContainsKey(type) && resources[type] >= amount)
+        {
+            resources[type] -= amount;
+            return true;
+        }
+        return false;
+    }
+
 }

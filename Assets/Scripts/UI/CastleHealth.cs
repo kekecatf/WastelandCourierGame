@@ -22,8 +22,9 @@ public class CastleHealth : MonoBehaviour
         if (currentHealth <= 0)
         {
             Debug.Log("🏚️ Kale yıkıldı! Oyun bitti.");
-            // Gelecekte: oyun bitti menüsü vs.
+            GameManager.Instance.GameOver();
         }
+
     }
 
     void UpdateUI()

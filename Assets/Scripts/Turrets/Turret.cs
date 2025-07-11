@@ -25,11 +25,15 @@ public class Turret : MonoBehaviour
         }
     }
 
-    void Shoot(Transform target)
+    void Shoot(Transform enemyTransform)
+{
+    GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
+    Enemy enemy = enemyTransform.GetComponent<Enemy>();
+    if (enemy != null)
     {
-        GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-        bullet.GetComponent<Bullet>().SetTarget(target);
+        bullet.GetComponent<Bullet>().SetTarget(enemy);
     }
+}
 
     void OnDrawGizmosSelected()
     {
