@@ -66,11 +66,11 @@ public class Enemy : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Castle"))
+        if (collision.CompareTag("Caravan"))
         {
-            CastleHealth castle = collision.GetComponent<CastleHealth>();
-            if (castle != null)
-                castle.TakeDamage(1);
+            CaravanHealth caravan = collision.GetComponent<CaravanHealth>();
+            if (caravan != null)
+                caravan.TakeDamage(1);
 
             if (hpBarInstance != null)
                 Destroy(hpBarInstance);

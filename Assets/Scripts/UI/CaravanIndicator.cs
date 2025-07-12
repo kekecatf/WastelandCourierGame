@@ -1,10 +1,10 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CastleIndicator : MonoBehaviour
+public class CaravanIndicator : MonoBehaviour
 {
     public Transform player;
-    public Transform castle;
+    public Transform caravan;
     public RectTransform canvasRect;
     public RectTransform indicator;
 
@@ -21,7 +21,7 @@ public class CastleIndicator : MonoBehaviour
     {
         canvasGroup = indicator.GetComponent<CanvasGroup>();
         if (canvasGroup == null)
-            Debug.LogError("❌ CanvasGroup eksik! Lütfen CastleIndicator objesine ekleyin.");
+            Debug.LogError("❌ CanvasGroup eksik! Lütfen CaravanIndicator objesine ekleyin.");
 
         // Başlangıç durumu
         canvasGroup.alpha = 0f;
@@ -30,17 +30,17 @@ public class CastleIndicator : MonoBehaviour
 
     void Update()
     {
-        if (player == null || castle == null || indicator == null || canvasRect == null) return;
+        if (player == null || caravan == null || indicator == null || canvasRect == null) return;
 
-        Vector3 direction = castle.position - player.position;
+        Vector3 direction = caravan.position - player.position;
 
         // Kamera görünürlüğü kontrolü
-        Vector3 viewportPos = Camera.main.WorldToViewportPoint(castle.position);
-        bool isCastleVisible = viewportPos.x >= 0f && viewportPos.x <= 1f &&
+        Vector3 viewportPos = Camera.main.WorldToViewportPoint(caravan.position);
+        bool isCaravanVisible = viewportPos.x >= 0f && viewportPos.x <= 1f &&
                                viewportPos.y >= 0f && viewportPos.y <= 1f &&
                                viewportPos.z > 0f;
 
-        bool shouldShow = !isCastleVisible;
+        bool shouldShow = !isCaravanVisible;
 
         // Fade ve Scale animasyonu
         float target = shouldShow ? targetAlpha : 0f;

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CastleHealth : MonoBehaviour
+public class CaravanHealth : MonoBehaviour
 {
     public int maxHealth = 10;
     private int currentHealth;
@@ -21,7 +21,7 @@ public class CastleHealth : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            Debug.Log("🏚️ Kale yıkıldı! Oyun bitti.");
+            Debug.Log("🏚️ Karavan yıkıldı! Oyun bitti.");
             GameManager.Instance.GameOver();
         }
 

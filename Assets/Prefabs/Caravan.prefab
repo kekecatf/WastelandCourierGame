@@ -13,8 +13,8 @@ GameObject:
   - component: {fileID: 749821391349403318}
   - component: {fileID: 5961148507490719012}
   m_Layer: 0
-  m_Name: Castle
-  m_TagString: Castle
+  m_Name: Caravan
+  m_TagString: Caravan
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
