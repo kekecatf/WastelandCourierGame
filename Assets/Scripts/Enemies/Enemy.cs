@@ -11,6 +11,10 @@ public class Enemy : MonoBehaviour
     private GameObject hpBarInstance;
     public GameObject goldPrefab; // Inspector'dan atanacak
     public GameObject[] blueprintPrefabs; // Farklı blueprint objeleri atanabilir
+    public EnemyType enemyType = EnemyType.Normal;
+    public float moveSpeed = 2f;
+    public int damageToCaravan = 1;
+
 
 
 
@@ -19,6 +23,29 @@ public class Enemy : MonoBehaviour
     void Start()
     {
         currentHealth = maxHealth;
+
+        switch (enemyType)
+        {
+            case EnemyType.Armored:
+                maxHealth *= 3;
+                moveSpeed = 1f;
+                break;
+
+            case EnemyType.Exploder:
+                maxHealth = 1;
+                moveSpeed = 2.5f;
+                damageToCaravan = 3;
+                break;
+
+            case EnemyType.Fast:
+                moveSpeed = 4f;
+                maxHealth = Mathf.RoundToInt(maxHealth * 0.7f);
+                break;
+
+            default: // Normal
+                moveSpeed = 2f;
+                break;
+        }
 
         if (hpBarPrefab != null)
         {
@@ -38,7 +65,8 @@ public class Enemy : MonoBehaviour
         if (target == null) return;
 
         Vector2 direction = (target.position - transform.position).normalized;
-        transform.position += (Vector3)(direction * Time.deltaTime * 2f);
+        transform.position += (Vector3)(direction * Time.deltaTime * moveSpeed);
+
 
         // Can barı pozisyon güncellemesi artık gerekli değil çünkü parent olarak ayarlandı
         // if (hpBarInstance != null)
@@ -97,5 +125,22 @@ public class Enemy : MonoBehaviour
                 Destroy(hpBarInstance);
             Destroy(gameObject);
         }
+        if (enemyType == EnemyType.Exploder)
+        {
+            // Patlama efekti (ekleyebilirsin)
+            Debug.Log("💥 Patlayan mutant kendini yok etti!");
+
+            if (hpBarInstance != null)
+                Destroy(hpBarInstance);
+
+            // Oyuncuya da zarar verebilirsin burada
+            Destroy(gameObject);
+        }
+        if (collision.CompareTag("Player"))
+        {
+            Debug.Log("😈 Düşman oyuncuya çarptı!");
+            // Hasar kodu buraya
+        }
+
     }
 }

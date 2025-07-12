@@ -7,12 +7,12 @@ public class DayNightCycle : MonoBehaviour
     private float timer = 0f;
 
     private bool isDay = true;
+    public GameObject[] enemyPrefabs; // Inspector'dan atanır
 
     public ResourceSpawner spawner;  // Kaynak spawn sistemi
     [Range(0f, 1f)]
     public float regenerationRatio = 0.5f; // Sabah kaynakların ne kadarı yenilensin
 
-    public GameObject enemyPrefab;
     public Transform[] spawnPoints; // Düşman spawn noktaları
 
     void Start()
@@ -44,12 +44,14 @@ public class DayNightCycle : MonoBehaviour
         }
     }
 
+
     void SpawnEnemies()
     {
         foreach (Transform point in spawnPoints)
         {
-            GameObject enemy = Instantiate(enemyPrefab, point.position, Quaternion.identity);
-            // Düşman hedefini kendi içinde ayarlayacak
+            int index = Random.Range(0, enemyPrefabs.Length);
+            GameObject enemy = Instantiate(enemyPrefabs[index], point.position, Quaternion.identity);
         }
     }
+
 }

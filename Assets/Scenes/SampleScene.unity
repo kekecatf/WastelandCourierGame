@@ -193,7 +193,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Stone: 0'
+  m_text: "Ta\u015F: 0"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -707,7 +707,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Wood: 0'
+  m_text: 'Odun: 0'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -1885,9 +1885,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dayDuration: 10
   nightDuration: 15
+  enemyPrefabs:
+  - {fileID: 5687110353871480299, guid: 58126baf9dff2f948a2cc08ac0bf9380, type: 3}
+  - {fileID: 5687110353871480299, guid: c620283aaaec31c4d8fe13c56ababbcf, type: 3}
+  - {fileID: 5687110353871480299, guid: 77a803c77073d6f4dac9b137c280d8f0, type: 3}
+  - {fileID: 5687110353871480299, guid: d499a2078edfd2b4596eab3dd7fbc943, type: 3}
   spawner: {fileID: 1830923665}
   regenerationRatio: 0.5
-  enemyPrefab: {fileID: 5687110353871480299, guid: 58126baf9dff2f948a2cc08ac0bf9380, type: 3}
   spawnPoints:
   - {fileID: 2085852924}
   - {fileID: 342709677}
@@ -1942,7 +1946,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stoneText: {fileID: 53900356}
   woodText: {fileID: 186674145}
-  meteoriteText: {fileID: 2130489725}
+  scrapMetalText: {fileID: 2130489725}
   capacityText: {fileID: 1932488955}
 --- !u!1 &1160277406
 GameObject:
@@ -3068,10 +3072,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   stonePrefab: {fileID: 6150571164243365950, guid: e0b0a5d1e8cf5d042a86cacccc224750, type: 3}
   woodPrefab: {fileID: 6150571164243365950, guid: 8563a6cf242dfef4181371b0e7c9b502, type: 3}
-  meteoritePrefab: {fileID: 6150571164243365950, guid: ee9f517b253fba948a706f516eee1818, type: 3}
+  scrapMetalPrefab: {fileID: 6150571164243365950, guid: ee9f517b253fba948a706f516eee1818, type: 3}
   stoneCount: 5
   woodCount: 3
-  meteoriteCount: 2
+  scrapMetalCount: 2
   spawnAreaMin: {x: -10, y: -5}
   spawnAreaMax: {x: 10, y: 5}
 --- !u!4 &1830923666
@@ -3352,7 +3356,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -730, y: 200}
+  m_AnchoredPosition: {x: -730, y: 150}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1932488955
@@ -3375,7 +3379,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Capacity: 0/0'
+  m_text: 'Kapasite: 0/0'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4116,7 +4120,7 @@ GameObject:
   - component: {fileID: 2130489726}
   - component: {fileID: 2130489725}
   m_Layer: 5
-  m_Name: MeteoriteText
+  m_Name: scrapMetalText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4161,7 +4165,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Meteorite: 0'
+  m_text: 'Hurda Metal: 0'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
