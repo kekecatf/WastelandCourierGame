@@ -8,31 +8,51 @@ public class CastleIndicator : MonoBehaviour
     public RectTransform canvasRect;
     public RectTransform indicator;
 
+    private CanvasGroup canvasGroup;
+
+    [Header("Animasyon Ayarları")]
+    public float fadeSpeed = 5f;
+    public float scaleSpeed = 5f;
+    public float targetAlpha = 1f;
+    public Vector3 visibleScale = Vector3.one;
+    public Vector3 hiddenScale = Vector3.zero;
+
+    void Start()
+    {
+        canvasGroup = indicator.GetComponent<CanvasGroup>();
+        if (canvasGroup == null)
+            Debug.LogError("❌ CanvasGroup eksik! Lütfen CastleIndicator objesine ekleyin.");
+
+        // Başlangıç durumu
+        canvasGroup.alpha = 0f;
+        indicator.localScale = hiddenScale;
+    }
+
     void Update()
     {
-        if (player == null || castle == null) return;
+        if (player == null || castle == null || indicator == null || canvasRect == null) return;
 
         Vector3 direction = castle.position - player.position;
 
-        // Kale ekranda görünüyorsa göstergeyi gizle
+        // Kamera görünürlüğü kontrolü
         Vector3 viewportPos = Camera.main.WorldToViewportPoint(castle.position);
         bool isCastleVisible = viewportPos.x >= 0f && viewportPos.x <= 1f &&
                                viewportPos.y >= 0f && viewportPos.y <= 1f &&
                                viewportPos.z > 0f;
 
-        if (isCastleVisible)
-        {
-            indicator.gameObject.SetActive(false);
-            return;
-        }
+        bool shouldShow = !isCastleVisible;
 
-        indicator.gameObject.SetActive(true);
+        // Fade ve Scale animasyonu
+        float target = shouldShow ? targetAlpha : 0f;
+        canvasGroup.alpha = Mathf.Lerp(canvasGroup.alpha, target, Time.deltaTime * fadeSpeed);
+        indicator.localScale = Vector3.Lerp(indicator.localScale, shouldShow ? visibleScale : hiddenScale, Time.deltaTime * scaleSpeed);
 
-        // Gösterge yönü (ok simgesi döndürülür)
+        if (!shouldShow) return;
+
+        // Yön gösterimi
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        indicator.rotation = Quaternion.Euler(0, 0, angle - 90f); // ok yukarı bakıyorsa
+        indicator.rotation = Quaternion.Euler(0, 0, angle - 90f);
 
-        // Gösterge konumu (ekranın kenarına sabitle)
         Vector3 screenPoint = Camera.main.WorldToViewportPoint(player.position + direction.normalized * 5f);
         screenPoint = new Vector3(Mathf.Clamp01(screenPoint.x), Mathf.Clamp01(screenPoint.y), 0);
 
@@ -44,5 +64,4 @@ public class CastleIndicator : MonoBehaviour
 
         indicator.anchoredPosition = uiPos;
     }
-
 }
