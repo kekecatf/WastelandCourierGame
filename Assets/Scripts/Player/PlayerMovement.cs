@@ -8,10 +8,12 @@ public class PlayerMovement : MonoBehaviour
 
     private Vector2 movementInput;
     private PlayerControls controls;
+    private PlayerStats stats;
 
     private void Awake()
     {
         controls = new PlayerControls();
+        stats = GetComponent<PlayerStats>();
     }
 
     private void OnEnable()
@@ -28,8 +30,11 @@ public class PlayerMovement : MonoBehaviour
         controls.Gameplay.Disable();
     }
 
+
     void FixedUpdate()
     {
-        rb.MovePosition(rb.position + movementInput * moveSpeed * Time.fixedDeltaTime);
+        rb.MovePosition(rb.position + movementInput * stats.moveSpeed * Time.fixedDeltaTime);
     }
+
+
 }

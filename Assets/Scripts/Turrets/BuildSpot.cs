@@ -19,69 +19,69 @@ public class BuildSpot : MonoBehaviour
     private int currentLevel = 0;
     private GameObject currentTurret;
 
+    private PlayerStats playerStats;
+
     private void Start()
     {
         if (progressCanvas != null)
             progressCanvas.SetActive(false);
+
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player != null)
+            playerStats = player.GetComponent<PlayerStats>();
     }
 
     void Update()
-{
-    if (!isPlayerNearby) return;
-
-    // Her seviyede (ilk kurulum + yükseltme) basılı tutma olacak
-    if (Keyboard.current.eKey.isPressed)
     {
-        if (currentLevel >= levels.Length)
+        if (!isPlayerNearby || playerStats == null) return;
+
+        if (Keyboard.current.eKey.isPressed)
         {
-            Debug.Log("⚠️ Zaten maksimum seviyede.");
-            return;
-        }
+            if (currentLevel >= levels.Length)
+            {
+                Debug.Log("⚠️ Zaten maksimum seviyede.");
+                return;
+            }
 
-        if (!HasEnoughResources())
+            if (!HasEnoughResources())
+            {
+                Debug.Log("🚫 Yetersiz kaynak!");
+                return;
+            }
+
+            if (!isBuilding)
+            {
+                isBuilding = true;
+                if (progressCanvas != null)
+                    progressCanvas.SetActive(true);
+            }
+
+            holdTimer += Time.deltaTime;
+            if (progressBar != null)
+                progressBar.value = holdTimer / buildTime;
+
+            if (holdTimer >= buildTime)
+                BuildOrUpgradeTurret();
+        }
+        else if (isBuilding)
         {
-            Debug.Log("🚫 Yetersiz kaynak!");
-            return;
+            ResetBuild();
         }
-
-        if (!isBuilding)
-        {
-            isBuilding = true;
-            if (progressCanvas != null)
-                progressCanvas.SetActive(true);
-        }
-
-        holdTimer += Time.deltaTime;
-        if (progressBar != null)
-            progressBar.value = holdTimer / buildTime;
-
-        if (holdTimer >= buildTime)
-            BuildOrUpgradeTurret();
     }
-    else if (isBuilding)
-    {
-        ResetBuild();
-    }
-}
-
 
     void BuildOrUpgradeTurret()
     {
-        if (currentLevel >= levels.Length)
-        {
-            Debug.Log("⚠️ Maksimum seviyeye ulaşıldı.");
-            return;
-        }
+        if (currentLevel >= levels.Length) return;
 
         TurretLevelData levelData = levels[currentLevel];
 
-        PlayerInventory.Instance.Remove("Stone", levelData.requiredStone);
-        PlayerInventory.Instance.Remove("Wood", levelData.requiredWood);
+        playerStats.RemoveResource("Stone", levelData.requiredStone);
+        playerStats.RemoveResource("Wood", levelData.requiredWood);
 
         if (currentTurret != null)
             Destroy(currentTurret);
 
-        Vector3 spawnPos = new Vector3(transform.position.x, transform.position.y, -1f); // 👈 böyle
+        Vector3 spawnPos = new Vector3(transform.position.x, transform.position.y, -1f);
         currentTurret = Instantiate(levelData.prefab, spawnPos, Quaternion.identity);
         currentLevel++;
 
@@ -89,7 +89,6 @@ public class BuildSpot : MonoBehaviour
 
         Debug.Log($"✅ Kule seviyesi {currentLevel} oldu!");
     }
-
 
     void ResetBuild()
     {
@@ -120,12 +119,11 @@ public class BuildSpot : MonoBehaviour
 
     bool HasEnoughResources()
     {
-        if (currentLevel >= levels.Length)
-            return false;
+        if (currentLevel >= levels.Length) return false;
 
         TurretLevelData levelData = levels[currentLevel];
 
-        return PlayerInventory.Instance.GetAmount("Stone") >= levelData.requiredStone &&
-               PlayerInventory.Instance.GetAmount("Wood") >= levelData.requiredWood;
+        return playerStats.GetResourceAmount("Stone") >= levelData.requiredStone &&
+               playerStats.GetResourceAmount("Wood") >= levelData.requiredWood;
     }
 }

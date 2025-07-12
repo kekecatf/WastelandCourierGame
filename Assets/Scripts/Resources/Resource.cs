@@ -6,22 +6,28 @@ public class Resource : MonoBehaviour
     public int amount = 1;
 
     public void Collect()
-    {
-        // Ekleme işlemi sadece PlayerInventory üzerinden yapılmalı
-        switch (type)
-        {
-            case ResourceType.Stone:
-                PlayerInventory.Instance.Add("Stone", amount);
-                break;
-            case ResourceType.Wood:
-                PlayerInventory.Instance.Add("Wood", amount);
-                break;
-            case ResourceType.Meteorite:
-                PlayerInventory.Instance.Add("Meteorite", amount);
-                break;
-        }
+{
+    var player = GameObject.FindWithTag("Player");
+    if (player == null) return;
 
-        Destroy(gameObject);
+    var stats = player.GetComponent<PlayerStats>();
+    if (stats == null) return;
+
+    switch (type)
+    {
+        case ResourceType.Stone:
+            stats.AddResource("Stone", amount);
+            break;
+        case ResourceType.Wood:
+            stats.AddResource("Wood", amount);
+            break;
+        case ResourceType.Meteorite:
+            stats.AddResource("Meteorite", amount);
+            break;
     }
+
+    Destroy(gameObject);
+}
+
 
 }
