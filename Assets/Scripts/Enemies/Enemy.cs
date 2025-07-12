@@ -10,6 +10,8 @@ public class Enemy : MonoBehaviour
     private Image hpFillImage; // STATIC KALDIRILDI
     private GameObject hpBarInstance;
     public GameObject goldPrefab; // Inspector'dan atanacak
+    public GameObject[] blueprintPrefabs; // Farklı blueprint objeleri atanabilir
+
 
 
     public Transform target;
@@ -67,6 +69,14 @@ public class Enemy : MonoBehaviour
                 Instantiate(goldPrefab, transform.position, Quaternion.identity);
                 Debug.Log("💰 Düşman altın bıraktı!");
             }
+
+            if (blueprintPrefabs.Length > 0 && Random.value < 0.75f)
+            {
+                int index = Random.Range(0, blueprintPrefabs.Length);
+                Instantiate(blueprintPrefabs[index], transform.position, Quaternion.identity);
+                Debug.Log("📘 Düşman blueprint düşürdü!");
+            }
+
 
             if (hpBarInstance != null)
                 Destroy(hpBarInstance);

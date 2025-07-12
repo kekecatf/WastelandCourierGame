@@ -119,11 +119,20 @@ public class BuildSpot : MonoBehaviour
 
     bool HasEnoughResources()
     {
-        if (currentLevel >= levels.Length) return false;
+        if (currentLevel >= levels.Length || playerStats == null) return false;
 
         TurretLevelData levelData = levels[currentLevel];
 
-        return playerStats.GetResourceAmount("Stone") >= levelData.requiredStone &&
-               playerStats.GetResourceAmount("Wood") >= levelData.requiredWood;
+        bool hasResources = playerStats.GetResourceAmount("Stone") >= levelData.requiredStone &&
+                            playerStats.GetResourceAmount("Wood") >= levelData.requiredWood;
+
+        bool hasBlueprint = string.IsNullOrEmpty(levelData.requiredBlueprintId) ||
+                            playerStats.HasBlueprint(levelData.requiredBlueprintId);
+
+        if (!hasBlueprint)
+            Debug.Log($"🚫 Gerekli taslak yok: {levelData.requiredBlueprintId}");
+
+        return hasResources && hasBlueprint;
     }
+
 }

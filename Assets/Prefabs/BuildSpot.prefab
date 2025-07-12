@@ -292,9 +292,11 @@ MonoBehaviour:
   - prefab: {fileID: 7065339760128154922, guid: 1a5ea374369b5a14db40d810404e934a, type: 3}
     requiredStone: 1
     requiredWood: 1
+    requiredBlueprintId: 
   - prefab: {fileID: 7065339760128154922, guid: 6cb7ac0260b61954184f1248df1fbbc0, type: 3}
     requiredStone: 1
     requiredWood: 1
+    requiredBlueprintId: Turret_Lv2
   buildTime: 2
   progressBar: {fileID: 7890812608410297602}
   progressCanvas: {fileID: 4697144083639564778}

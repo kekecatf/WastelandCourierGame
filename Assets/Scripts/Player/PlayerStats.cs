@@ -8,6 +8,7 @@ public class PlayerStats : MonoBehaviour
     public int gold = 10;
 
     private Dictionary<string, int> resources = new Dictionary<string, int>();
+    private HashSet<string> unlockedBlueprints = new HashSet<string>();
 
     public void UpgradeSpeed()
     {
@@ -66,5 +67,16 @@ public class PlayerStats : MonoBehaviour
         foreach (var entry in resources)
             total += entry.Value;
         return total;
+    }
+
+    public void UnlockBlueprint(string blueprintId)
+    {
+        if (unlockedBlueprints.Add(blueprintId))
+            Debug.Log($"📘 Blueprint açıldı: {blueprintId}");
+    }
+
+    public bool HasBlueprint(string blueprintId)
+    {
+        return unlockedBlueprints.Contains(blueprintId);
     }
 }
