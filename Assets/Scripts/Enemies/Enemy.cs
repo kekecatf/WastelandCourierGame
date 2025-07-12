@@ -9,6 +9,8 @@ public class Enemy : MonoBehaviour
     public GameObject hpBarPrefab; // Prefab atanacak
     private Image hpFillImage; // STATIC KALDIRILDI
     private GameObject hpBarInstance;
+    public GameObject goldPrefab; // Inspector'dan atanacak
+
 
     public Transform target;
 
@@ -20,7 +22,7 @@ public class Enemy : MonoBehaviour
         {
             hpBarInstance = Instantiate(hpBarPrefab, transform.position + Vector3.up * 1f, Quaternion.identity);
             hpBarInstance.transform.SetParent(transform, true); // FALSE -> TRUE
-            
+
             Transform fill = hpBarInstance.transform.Find("Background/Fill");
             if (fill != null)
             {
@@ -44,7 +46,7 @@ public class Enemy : MonoBehaviour
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;
-        
+
         // Debug için
         Debug.Log($"Enemy took {amount} damage. Current health: {currentHealth}/{maxHealth}");
 
@@ -58,10 +60,19 @@ public class Enemy : MonoBehaviour
         if (currentHealth <= 0)
         {
             Debug.Log("Enemy should die now!");
+
+            // ALTIN DÜŞÜRME %25 ŞANS
+            if (goldPrefab != null && Random.value < 0.25f)
+            {
+                Instantiate(goldPrefab, transform.position, Quaternion.identity);
+                Debug.Log("💰 Düşman altın bıraktı!");
+            }
+
             if (hpBarInstance != null)
                 Destroy(hpBarInstance);
             Destroy(gameObject);
         }
+
     }
 
     void OnTriggerEnter2D(Collider2D collision)

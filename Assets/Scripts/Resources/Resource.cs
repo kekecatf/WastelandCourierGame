@@ -21,8 +21,8 @@ public class Resource : MonoBehaviour
         case ResourceType.Wood:
             stats.AddResource("Wood", amount);
             break;
-        case ResourceType.Meteorite:
-            stats.AddResource("Meteorite", amount);
+        case ResourceType.scrapMetal:
+            stats.AddResource("scrapMetal", amount);
             break;
     }
 

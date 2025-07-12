@@ -4,11 +4,11 @@ public class ResourceSpawner : MonoBehaviour
 {
     public GameObject stonePrefab;
     public GameObject woodPrefab;
-    public GameObject meteoritePrefab;
+    public GameObject scrapMetalPrefab;
 
     public int stoneCount = 5;
     public int woodCount = 3;
-    public int meteoriteCount = 2;
+    public int scrapMetalCount = 2;
 
     public Vector2 spawnAreaMin = new Vector2(-10, -5);
     public Vector2 spawnAreaMax = new Vector2(10, 5);
@@ -30,7 +30,7 @@ public class ResourceSpawner : MonoBehaviour
 
         SpawnResources(stonePrefab, stoneCount);
         SpawnResources(woodPrefab, woodCount);
-        SpawnResources(meteoritePrefab, meteoriteCount);
+        SpawnResources(scrapMetalPrefab, scrapMetalCount);
     }
 
     void SpawnResources(GameObject prefab, int count)
@@ -52,11 +52,11 @@ public class ResourceSpawner : MonoBehaviour
     {
         int newStones = Mathf.RoundToInt(stoneCount * ratio);
         int newWoods = Mathf.RoundToInt(woodCount * ratio);
-        int newMeteors = Mathf.RoundToInt(meteoriteCount * ratio);
+        int newMeteors = Mathf.RoundToInt(scrapMetalCount * ratio);
 
         SpawnResources(stonePrefab, newStones);
         SpawnResources(woodPrefab, newWoods);
-        SpawnResources(meteoritePrefab, newMeteors);
+        SpawnResources(scrapMetalPrefab, newMeteors);
     }
 
 }

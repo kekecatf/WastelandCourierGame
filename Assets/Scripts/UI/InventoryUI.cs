@@ -5,7 +5,7 @@ public class InventoryUI : MonoBehaviour
 {
     public TextMeshProUGUI stoneText;
     public TextMeshProUGUI woodText;
-    public TextMeshProUGUI meteoriteText;
+    public TextMeshProUGUI scrapMetalText;
     public TextMeshProUGUI capacityText;
 
     private PlayerStats stats;
@@ -19,10 +19,10 @@ public class InventoryUI : MonoBehaviour
     {
         if (stats == null) return;
 
-        stoneText.text = "Stone: " + stats.GetResourceAmount("Stone");
-        woodText.text = "Wood: " + stats.GetResourceAmount("Wood");
-        meteoriteText.text = "Meteorite: " + stats.GetResourceAmount("Meteorite");
+        stoneText.text = "Taş: " + stats.GetResourceAmount("Stone");
+        woodText.text = "Odun: " + stats.GetResourceAmount("Wood");
+        scrapMetalText.text = "Hurda Metal: " + stats.GetResourceAmount("scrapMetal");
 
-        capacityText.text = $"Capacity: {stats.GetTotalResourceAmount()}/{stats.inventoryCapacity}";
+        capacityText.text = $"Kapasite: {stats.GetTotalResourceAmount()}/{stats.inventoryCapacity}";
     }
 }

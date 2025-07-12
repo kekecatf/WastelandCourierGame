@@ -4,8 +4,9 @@
 TagManager:
   serializedVersion: 3
   tags:
-  - Castle
   - Enemy
+  - Caravan
+  - Tribe
   layers:
   - Default
   - TransparentFX
