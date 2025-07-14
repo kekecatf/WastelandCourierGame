@@ -14,6 +14,7 @@ public class Enemy : MonoBehaviour
     public EnemyType enemyType = EnemyType.Normal;
     public float moveSpeed = 2f;
     public int damageToCaravan = 1;
+    private Animator animator;
 
 
 
@@ -23,6 +24,7 @@ public class Enemy : MonoBehaviour
     void Start()
     {
         currentHealth = maxHealth;
+        animator = GetComponent<Animator>();
 
         switch (enemyType)
         {
@@ -89,6 +91,7 @@ public class Enemy : MonoBehaviour
 
         if (currentHealth <= 0)
         {
+            animator.Play("Die");
             Debug.Log("Enemy should die now!");
 
             // ALTIN DÜŞÜRME %25 ŞANS
@@ -117,13 +120,16 @@ public class Enemy : MonoBehaviour
     {
         if (collision.CompareTag("Caravan"))
         {
+            animator.Play("Hitting");
             CaravanHealth caravan = collision.GetComponent<CaravanHealth>();
             if (caravan != null)
                 caravan.TakeDamage(1);
 
             if (hpBarInstance != null)
                 Destroy(hpBarInstance);
+        
             Destroy(gameObject);
+            animator.Play("Die");
         }
         if (enemyType == EnemyType.Exploder)
         {
