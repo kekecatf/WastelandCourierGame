@@ -8,6 +8,7 @@ TagManager:
   - Caravan
   - Tribe
   - Gold
+  - Resource
   layers:
   - Default
   - TransparentFX
