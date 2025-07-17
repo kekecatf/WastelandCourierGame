@@ -1,30 +1,24 @@
-# Dawn Defenders Oyunu
+# 🌌 Dawn Defenders
 
-## 🌗 Gece Gündüz Döngüsü
-
-🪓 Sabahları kaynak topla, 🌙 geceleri kaleni savun!  
-Unity ile geliştirilen 2D strateji ve aksiyon harmanı bir oyun.
+**Dawn Defenders**, kıyamet sonrası bir dünyada geçen, kaynak toplama, kule savunması ve taktiksel ilerleme öğelerini harmanlayan bir **2D top-down hayatta kalma oyunudur**. Oyuncu, kritik bir kargoyu taşıdığı karavanıyla mutasyon geçirmiş düşmanlardan kaçarak gelişmiş son yerleşim bölgesine ulaşmaya çalışır.
 
 ---
 
-## 🎮 Oynanış Özeti
+## 🧪 Hikaye Özeti
 
-Fortress Shift, oyuncunun gündüzleri taş, odun ve meteorit gibi kaynakları toplayarak taretler inşa ettiği, geceleri ise düşman akınlarına karşı kalesini savunduğu bir **gündüz-gece döngüsü** tabanlı strateji oyunudur.
-
----
-
-## 🧱 Özellikler
-
-- 🧍‍♂️ **Oyuncu Hareketi:** Yeni Unity Input System ile kontrol
-- 🪵 **Kaynak Toplama:** Belirli kaynak noktalarına yaklaşarak `E` tuşuyla toplama
-- 🏰 **Kule Yerleştirme:** İnşa alanlarına gelip `E` tuşuna basılı tutarak kule dikme
-- 🔫 **Taret Mekaniği:** Otomatik olarak düşmanlara ateş eden savunma sistemleri
-- 🌅 **Gündüz-Gece Sistemi:** Belirli sürelik döngüler ile oyun ilerleyişi
-- 👾 **Düşman Dalgaları:** Geceleri belirli noktalardan doğan düşmanlar kaleye yürür
-- 🎯 **Kale Canı:** Düşmanlar ulaşırsa kale hasar alır, sıfırlanırsa oyun biter
+300 yıl önce ters giden bir deneyin ardından dünya nüfusunun %99’u mutasyona uğradı. Geriye kalanlar ilkel kabileler hâline geldi. Oyuncu, nadiren gelişmiş kalmayı başarabilmiş bir topluluğa **hayati önemde bir kargo** ulaştırmakla görevlidir.
 
 ---
-## 🧑‍💻 Geliştirici
 
-Bu oyun bireysel olarak geliştirilmiştir.  
-Her türlü katkıya ve geribildirime açığım!
+## 🚀 Özellikler
+
+- ⚙️ **Gündüz/Gece Döngüsü**: Gündüz kaynak topla, gece karavanını mutantlardan savun.
+- 🔧 **Savunma Yapıları**: Otomatik taretler, bomba tuzakları ve dikenli teller kur.
+- 📘 **Blueprint Sistemi**: Gelişmiş yapılar için haritada taslaklar bul.
+- 🧟 **Çeşitli Mutant Türleri**
+- 🎯 **Silah Sistemi**: Tabanca, pompalı, av tüfeği gibi silahları keşfet ve değiştir.
+- 🧠 **Kovan Zihni**: Düşmanlar bir lider mutant tarafından yönetilir.
+- 🗺️ **Keşif ve Ticaret**: Kabile bölgelerini keşfet, altınla geliştirmeler ve ticaret yap.
+- 🎮 **Gerçekçi görüş tarzı**: Sadece baktığın yön görünür; karanlık atmosfer.
+
+---
