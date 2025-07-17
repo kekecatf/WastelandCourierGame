@@ -139,3 +139,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 2
   amount: 1
+  qtePrefab: {fileID: 6857291114770266964, guid: 02277a8a9e0bb3e4f83c67930c8b8df3, type: 3}

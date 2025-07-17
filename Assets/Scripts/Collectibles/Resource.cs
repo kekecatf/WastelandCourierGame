@@ -2,32 +2,59 @@ using UnityEngine;
 
 public class Resource : MonoBehaviour
 {
-    public ResourceType type;  // Taş, odun, meteorit...
+    public ResourceType type;
     public int amount = 1;
+    public GameObject qtePrefab;
 
-    public void Collect()
-{
-    var player = GameObject.FindWithTag("Player");
-    if (player == null) return;
+    private GameObject currentQTE;
 
-    var stats = player.GetComponent<PlayerStats>();
-    if (stats == null) return;
-
-    switch (type)
+    public void TryCollectWithQTE()
     {
-        case ResourceType.Stone:
-            stats.AddResource("Stone", amount);
-            break;
-        case ResourceType.Wood:
-            stats.AddResource("Wood", amount);
-            break;
-        case ResourceType.scrapMetal:
-            stats.AddResource("scrapMetal", amount);
-            break;
+        if (qtePrefab == null)
+        {
+            Debug.LogError("❌ QTE Prefab atanmadı!");
+            return;
+        }
+
+        Canvas canvas = FindObjectOfType<Canvas>();
+        if (canvas == null)
+        {
+            Debug.LogError("❌ Canvas bulunamadı!");
+            return;
+        }
+
+        currentQTE = Instantiate(qtePrefab, canvas.transform);
+
+        var qte = currentQTE.GetComponent<QTESystem>();
+        if (qte == null)
+        {
+            Debug.LogError("❌ QTESystem scripti yok!");
+            return;
+        }
+
+        qte.StartQTE(
+            () => { Collect(); },
+            () =>
+            {
+                Debug.Log("❌ QTE başarısız, kaynak kaybedildi.");
+                Destroy(gameObject); // 🔥 KAYNAĞI YOK ET
+            }
+        );
     }
 
-    Destroy(gameObject);
-}
 
+    public void Collect()
+    {
+        var stats = GameObject.FindWithTag("Player").GetComponent<PlayerStats>();
+        if (stats == null) return;
 
+        switch (type)
+        {
+            case ResourceType.Stone: stats.AddResource("Stone", amount); break;
+            case ResourceType.Wood: stats.AddResource("Wood", amount); break;
+            case ResourceType.scrapMetal: stats.AddResource("scrapMetal", amount); break;
+        }
+
+        Destroy(gameObject);
+    }
 }

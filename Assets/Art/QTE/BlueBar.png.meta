@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 2d00000cfeab23a44adc8a713ec9beda
+guid: 4c79373faedf2234bb48376189585621
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -5639839020358008831
-    second: "WhatsApp G\xF6rsel 2025-07-14 saat 21.18.57_da34c670_0"
+      213: 7130912001605438921
+    second: BlueBar_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: "WhatsApp G\xF6rsel 2025-07-14 saat 21.18.57_da34c670_0"
+      name: BlueBar_0
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 190
-        height: 74
+        x: 79
+        y: 41
+        width: 7
+        height: 18
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 1008c29ca444bb1b0800000000000000
-      internalID: -5639839020358008831
+      spriteID: 9cd034c2fa616f260800000000000000
+      internalID: 7130912001605438921
       vertices: []
       indices: 
       edges: []
@@ -134,8 +134,7 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable:
-      "WhatsApp G\xF6rsel 2025-07-14 saat 21.18.57_da34c670_0": -5639839020358008831
+    nameFileIdTable: {}
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

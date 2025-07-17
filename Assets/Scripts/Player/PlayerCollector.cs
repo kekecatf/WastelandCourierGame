@@ -15,9 +15,10 @@ public class PlayerCollector : MonoBehaviour
                 Resource res = hit.GetComponent<Resource>();
                 if (res != null)
                 {
-                    res.Collect();
+                    res.TryCollectWithQTE();  // QTE başlat
                     break;
                 }
+
             }
         }
     }
