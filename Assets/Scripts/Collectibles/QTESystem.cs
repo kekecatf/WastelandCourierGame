@@ -22,15 +22,24 @@ public class QTESystem : MonoBehaviour
 
         if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            float diff = Mathf.Abs(Mathf.DeltaAngle(angle, targetZone.localEulerAngles.z));
-            if (diff < 20f)
+            float pointerZ = pointer.localEulerAngles.z;
+            float targetZ = targetZone.localEulerAngles.z;
+
+            float diff = Mathf.DeltaAngle(pointerZ, targetZ); // -180° ile +180° arasında fark verir
+
+            if (Mathf.Abs(diff) < 15f)  // 🔥 15 derece içinde ise başarılı (isteğe göre daraltabilirsin)
+            {
                 onSuccess?.Invoke();
+            }
             else
+            {
                 onFail?.Invoke();
+            }
 
             isRunning = false;
             gameObject.SetActive(false);
         }
+
     }
 
     public void StartQTE(System.Action successCallback, System.Action failCallback)

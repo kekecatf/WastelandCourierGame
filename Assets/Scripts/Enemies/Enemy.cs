@@ -23,9 +23,7 @@ public class Enemy : MonoBehaviour
 
     void Start()
     {
-        currentHealth = maxHealth;
-        animator = GetComponent<Animator>();
-
+        // 1. Tür bazlı maxHealth ve hareket ayarları
         switch (enemyType)
         {
             case EnemyType.Armored:
@@ -49,10 +47,14 @@ public class Enemy : MonoBehaviour
                 break;
         }
 
+        // 2. Şimdi currentHealth doğru maxHealth'e göre ayarlanmalı
+        currentHealth = maxHealth;
+
+        // 3. Can barını oluştur
         if (hpBarPrefab != null)
         {
             hpBarInstance = Instantiate(hpBarPrefab, transform.position + Vector3.up * 1f, Quaternion.identity);
-            hpBarInstance.transform.SetParent(transform, true); // FALSE -> TRUE
+            hpBarInstance.transform.SetParent(transform, true);
 
             Transform fill = hpBarInstance.transform.Find("Background/Fill");
             if (fill != null)
@@ -60,7 +62,10 @@ public class Enemy : MonoBehaviour
                 hpFillImage = fill.GetComponent<Image>();
             }
         }
+
+        animator = GetComponent<Animator>();
     }
+
 
     void Update()
     {
@@ -127,7 +132,7 @@ public class Enemy : MonoBehaviour
 
             if (hpBarInstance != null)
                 Destroy(hpBarInstance);
-        
+
             Destroy(gameObject);
             animator.Play("Die");
         }
