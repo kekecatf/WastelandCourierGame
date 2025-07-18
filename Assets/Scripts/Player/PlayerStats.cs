@@ -4,7 +4,7 @@ using UnityEngine;
 public class PlayerStats : MonoBehaviour
 {
     public float moveSpeed = 5f;
-    public int inventoryCapacity = 999;
+    public int inventoryCapacity = 20;
     public int gold = 10;
 
     private Dictionary<string, int> resources = new Dictionary<string, int>();
