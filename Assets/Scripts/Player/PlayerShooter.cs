@@ -1,40 +1,47 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerShooter : MonoBehaviour
 {
-    public float attackRange = 5f;
-    public float fireRate = 1f;
     public GameObject bulletPrefab;
+    public float bulletSpeed = 10f;
+    public float fireRate = 0.2f;
 
     private float fireTimer = 0f;
+    private Camera mainCam;
+
+    void Start()
+    {
+        mainCam = Camera.main;
+    }
 
     void Update()
     {
         fireTimer -= Time.deltaTime;
 
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, attackRange);
-        foreach (var hit in hits)
+        if (Mouse.current.leftButton.wasPressedThisFrame && fireTimer <= 0f)
         {
-            Enemy enemy = hit.GetComponent<Enemy>();
-            if (enemy != null && fireTimer <= 0f)
-            {
-                Shoot(enemy);
-                fireTimer = 1f / fireRate;
-                break;
-            }
+            FireTowardMouse();
+            fireTimer = fireRate;
         }
     }
 
-    void Shoot(Enemy enemy)
+    void FireTowardMouse()
     {
+        Vector3 screenPos = Mouse.current.position.ReadValue();
+        Vector3 worldPos = mainCam.ScreenToWorldPoint(screenPos);
+        worldPos.z = 0f;
+
+        Debug.Log("Mouse World Pos: " + worldPos);
+
+        Vector3 direction = (worldPos - transform.position).normalized;
+
         GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-        bullet.GetComponent<Bullet>().SetTarget(enemy);
+        Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.linearVelocity = direction * bulletSpeed;
+        }
     }
 
-    // Oyuncunun saldırı menzilini sahnede görsel olarak çizebiliriz
-    void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, attackRange);
-    }
 }

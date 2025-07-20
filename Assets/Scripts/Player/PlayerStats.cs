@@ -10,6 +10,35 @@ public class PlayerStats : MonoBehaviour
     private Dictionary<string, int> resources = new Dictionary<string, int>();
     private HashSet<string> unlockedBlueprints = new HashSet<string>();
 
+    public int maxHunger = 100;
+    public int currentHunger;
+    public float hungerDecreaseInterval = 5f; // her 5 saniyede bir azalır
+    public int hungerDecreaseAmount = 1;
+
+    private float hungerTimer;
+
+    void Start()
+    {
+        currentHunger = maxHunger;
+        hungerTimer = hungerDecreaseInterval;
+    }
+
+    void Update()
+    {
+        HandleHunger();
+    }
+
+    void HandleHunger()
+    {
+        hungerTimer -= Time.deltaTime;
+        if (hungerTimer <= 0f)
+        {
+            currentHunger = Mathf.Max(0, currentHunger - hungerDecreaseAmount);
+            hungerTimer = hungerDecreaseInterval;
+            Debug.Log("🥩 Açlık: " + currentHunger);
+        }
+    }
+
     public void UpgradeSpeed()
     {
         if (gold >= 3)
