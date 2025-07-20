@@ -4,14 +4,26 @@ public class Bullet : MonoBehaviour
 {
     public int damage = 1;
     public float lifeTime = 3f;
+    private Rigidbody2D rb;
 
     void Start()
     {
         Destroy(gameObject, lifeTime);
     }
 
+    public void Launch(Vector2 direction, float speed)
+    {
+        rb = GetComponent<Rigidbody2D>();
+        if (rb != null)
+            rb.linearVelocity = direction.normalized * speed;
+    }
+
     void OnTriggerEnter2D(Collider2D collision)
     {
+        if (collision.CompareTag("Player"))
+            return; // oyuncuya çarpmasın
+
+        // devamı:
         Enemy enemy = collision.GetComponent<Enemy>();
         if (enemy != null)
         {
@@ -30,4 +42,7 @@ public class Bullet : MonoBehaviour
 
         Destroy(gameObject);
     }
+
+
 }
+

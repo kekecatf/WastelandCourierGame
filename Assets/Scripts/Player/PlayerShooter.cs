@@ -19,7 +19,7 @@ public class PlayerShooter : MonoBehaviour
     {
         fireTimer -= Time.deltaTime;
 
-        if (Mouse.current.leftButton.wasPressedThisFrame && fireTimer <= 0f)
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame && fireTimer <= 0f)
         {
             FireTowardMouse();
             fireTimer = fireRate;
@@ -29,19 +29,15 @@ public class PlayerShooter : MonoBehaviour
     void FireTowardMouse()
     {
         Vector3 screenPos = Mouse.current.position.ReadValue();
-        Vector3 worldPos = mainCam.ScreenToWorldPoint(screenPos);
+        Vector3 worldPos = Camera.main.ScreenToWorldPoint(screenPos);
         worldPos.z = 0f;
 
-        Debug.Log("Mouse World Pos: " + worldPos);
-
-        Vector3 direction = (worldPos - transform.position).normalized;
+        Vector2 direction = (worldPos - transform.position).normalized;
 
         GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-        Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
-        if (rb != null)
-        {
-            rb.linearVelocity = direction * bulletSpeed;
-        }
+        bullet.GetComponent<Bullet>().Launch(direction, bulletSpeed);
+
+        Debug.Log("🚀 Mermi fırlatıldı!");
     }
 
 }
