@@ -1,5 +1,7 @@
 public enum AnimalState
 {
     Roaming,
-    Fleeing
+    Fleeing,
+    Sleeping,
+    NightRoaming
 }

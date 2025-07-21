@@ -33,16 +33,27 @@ public class DayNightCycle : MonoBehaviour
             {
                 Debug.Log("☀️ Sabah oldu - Kaynaklar yenileniyor");
                 spawner.RegenerateResources(regenerationRatio);
+                SetAnimalsNightState(false);
                 timer = dayDuration;
             }
             else
             {
                 Debug.Log("🌙 Gece başladı - Düşmanlar geliyor!");
                 SpawnEnemies();
+                SetAnimalsNightState(true);
                 timer = nightDuration;
             }
         }
     }
+    void SetAnimalsNightState(bool isNight)
+    {
+        Animal[] allAnimals = FindObjectsOfType<Animal>();
+        foreach (var animal in allAnimals)
+        {
+            animal.SetNight(isNight);
+        }
+    }
+
 
 
     void SpawnEnemies()

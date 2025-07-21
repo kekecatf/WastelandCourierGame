@@ -5,12 +5,34 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    public int requiredFuel = 4;
+    private int currentFuel = 0;
+
     public GameObject gameOverPanel;
 
     private void Awake()
     {
         if (Instance == null)
             Instance = this;
+        else
+            Destroy(gameObject);
+    }
+
+    public void AddFuel(int amount)
+    {
+        currentFuel += amount;
+        Debug.Log($"⛽ Yakıt toplandı: {currentFuel}/{requiredFuel}");
+    }
+
+    public bool HasAllFuel()
+    {
+        return currentFuel >= requiredFuel;
+    }
+
+    public void LoadNextScene()
+    {
+        Debug.Log("🚚 Tüm yakıtlar toplandı, sonraki sahneye geçiliyor...");
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 
     public void GameOver()
