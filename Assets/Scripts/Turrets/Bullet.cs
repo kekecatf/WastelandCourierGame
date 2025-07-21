@@ -15,34 +15,29 @@ public class Bullet : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         if (rb != null)
-            rb.linearVelocity = direction.normalized * speed;
+        {
+            rb.linearVelocity = direction * speed;
+        }
     }
 
     void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
-            return; // oyuncuya çarpmasın
-
-        // devamı:
-        Enemy enemy = collision.GetComponent<Enemy>();
-        if (enemy != null)
-        {
-            enemy.TakeDamage(damage);
-            Destroy(gameObject);
+        if (!collision.CompareTag("Enemy") && !collision.CompareTag("Animal"))
             return;
+
+        if (collision.CompareTag("Enemy"))
+        {
+            Enemy enemy = collision.GetComponent<Enemy>();
+            if (enemy != null)
+                enemy.TakeDamage(damage);
         }
-
-        Animal animal = collision.GetComponent<Animal>();
-        if (animal != null)
+        else if (collision.CompareTag("Animal"))
         {
-            animal.TakeDamage(damage);
-            Destroy(gameObject);
-            return;
+            Animal animal = collision.GetComponent<Animal>();
+            if (animal != null)
+                animal.TakeDamage(damage);
         }
 
         Destroy(gameObject);
     }
-
-
 }
-

@@ -652,6 +652,10 @@ MonoBehaviour:
   moveSpeed: 5
   inventoryCapacity: 20
   gold: 10
+  maxHunger: 100
+  currentHunger: 0
+  hungerDecreaseInterval: 5
+  hungerDecreaseAmount: 1
 --- !u!114 &131635445
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -892,7 +896,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &228209975
 Transform:
   m_ObjectHideFlags: 0

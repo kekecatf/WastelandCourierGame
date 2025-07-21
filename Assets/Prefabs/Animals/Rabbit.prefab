@@ -104,8 +104,12 @@ MonoBehaviour:
   animalType: Tavsan
   maxHealth: 3
   moveSpeed: 2
+  roamRadius: 5
+  detectionRadius: 5
+  fleeSpeedMultiplier: 1.5
   meatPrefab: {fileID: 8137549580499720014, guid: c3b953d4d1a6afe48bdfa61bc2652736, type: 3}
   hidePrefab: {fileID: 5739589301864148472, guid: cac8ce04787a16f47be771ff719ab292, type: 3}
+  hpBarPrefab: {fileID: 703183713388882252, guid: 5c650d700cb2738419891bde02ea05ab, type: 3}
 --- !u!61 &1274076873690692085
 BoxCollider2D:
   m_ObjectHideFlags: 0
