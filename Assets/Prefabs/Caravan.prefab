@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8905566402852767534}
   - component: {fileID: 749821391349403318}
   - component: {fileID: 5961148507490719012}
+  - component: {fileID: 6348652568386422223}
   m_Layer: 0
   m_Name: Caravan
   m_TagString: Caravan
@@ -149,3 +150,15 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &6348652568386422223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5899447824848960637}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c78a25ab13e80745842327e606f0df2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
