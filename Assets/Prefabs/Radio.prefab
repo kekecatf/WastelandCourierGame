@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85b669e7a5b59dd49980ddc2c12862f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  notePanel: {fileID: 0}
+  notePanel: {fileID: 7819733555780054894}
   noteTextUI: {fileID: 0}
   audioSource: {fileID: 0}
 --- !u!114 &4292018990027887392
@@ -108,12 +108,12 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -8299102551775261310, guid: f7a1bca46e1cdd249ba4eb4700469114, type: 3}
+  m_Sprite: {fileID: 3259166383195780678, guid: 9298ae7e4ca61f1418f79bf2ba3e9d57, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 5.56, y: 4.76}
+  m_Size: {x: 6.55, y: 7.54}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -157,8 +157,8 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 5.56, y: 4.76}
-    newSize: {x: 5.56, y: 4.76}
+    oldSize: {x: 6.55, y: 7.54}
+    newSize: {x: 6.55, y: 7.54}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0

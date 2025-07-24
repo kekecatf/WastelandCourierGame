@@ -60,7 +60,11 @@ public class NPCInteraction : MonoBehaviour
             tradeUIPanel.SetActive(false);
             isPanelOpen = false;
             Time.timeScale = 1f;
+
+            // Sadece oyun normal duruma döndüyse imleci gizle
             Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
         }
     }
+
 }

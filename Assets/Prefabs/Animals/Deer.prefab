@@ -29,8 +29,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 0.5, y: 0.5, z: 0.5}
+  m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -78,8 +78,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
-  m_Color: {r: 0.6037736, g: 0.088287644, b: 0.088287644, a: 1}
+  m_Sprite: {fileID: -6611388135711489896, guid: 045dda56e0cb3e34eb2809c391342b35, type: 3}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -105,7 +105,8 @@ MonoBehaviour:
   maxHealth: 3
   moveSpeed: 2
   roamRadius: 7
-  detectionRadius: 7
+  baseDetectionRadius: 4
+  nightDetectionFactor: 0.5
   fleeSpeedMultiplier: 1.5
   meatPrefab: {fileID: 8137549580499720014, guid: c3b953d4d1a6afe48bdfa61bc2652736, type: 3}
   hidePrefab: {fileID: 5739589301864148472, guid: 2b748b855bca4a74d8d1a8aed8edd0d6, type: 3}
@@ -144,15 +145,15 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0.039564133, y: 0.07914162}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 1, y: 1}
+    oldSize: {x: 6.01, y: 8.7}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 6.2233734, y: 8.914215}
   m_EdgeRadius: 0

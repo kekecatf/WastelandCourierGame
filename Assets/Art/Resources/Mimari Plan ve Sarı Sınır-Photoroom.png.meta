@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: f7a1bca46e1cdd249ba4eb4700469114
+guid: 68e2808204be3b743a8a23e0b9ecb958
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8299102551775261310
-    second: radyo_0
+      213: 8243194517552172501
+    second: "Mimari Plan ve Sar\u0131 S\u0131n\u0131r-Photoroom_0"
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: radyo_0
+      name: "Mimari Plan ve Sar\u0131 S\u0131n\u0131r-Photoroom_0"
       rect:
         serializedVersion: 2
-        x: 0
-        y: 0
-        width: 556
-        height: 476
+        x: 110
+        y: 193
+        width: 867
+        height: 640
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 28dc5ee133aa3dc80800000000000000
-      internalID: -8299102551775261310
+      spriteID: 5dd05294db5b56270800000000000000
+      internalID: 8243194517552172501
       vertices: []
       indices: 
       edges: []
