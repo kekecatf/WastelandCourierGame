@@ -5,6 +5,7 @@ public class DayNightCycle : MonoBehaviour
     public float dayDuration = 30f;
     public float nightDuration = 30f;
     private float timer = 0f;
+    public LightController lightController;
 
     private bool isDay = true;
     public GameObject[] enemyPrefabs; // Inspector'dan atanır
@@ -34,6 +35,7 @@ public class DayNightCycle : MonoBehaviour
                 Debug.Log("☀️ Sabah oldu - Kaynaklar yenileniyor");
                 spawner.RegenerateResources(regenerationRatio);
                 SetAnimalsNightState(false);
+                lightController?.SetDay(true);
                 timer = dayDuration;
             }
             else
@@ -41,6 +43,7 @@ public class DayNightCycle : MonoBehaviour
                 Debug.Log("🌙 Gece başladı - Düşmanlar geliyor!");
                 SpawnEnemies();
                 SetAnimalsNightState(true);
+                lightController?.SetDay(false);
                 timer = nightDuration;
             }
         }
