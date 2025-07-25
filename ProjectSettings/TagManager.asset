@@ -10,6 +10,7 @@ TagManager:
   - Gold
   - Resource
   - Animal
+  - Bullet
   layers:
   - Default
   - TransparentFX
@@ -47,8 +48,8 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: Darkness
-    uniqueID: 2706341657
+  - name: Shadows
+    uniqueID: 3802411421
     locked: 0
   m_RenderingLayers:
   - Default
