@@ -17,16 +17,20 @@ public class WeaponBullet : MonoBehaviour
     }
 
     void Start()
-    {
-        // Mermiye ileri doğru (kendi sağına) anlık bir hız ver.
-        // Bu, Update içinde sürekli hareket ettirmekten daha doğru ve performanslıdır.
-        rb.linearVelocity = transform.right * speed;
-
-        // Mermi ekranda kaybolursa diye 3 saniye sonra kendini yok etsin.
-        Destroy(gameObject, 3f);
+{
+    // Artık yön verme burada yapılmıyor, Launch() ile dışarıdan yapılıyor.
+    Destroy(gameObject, 3f);
+}
 
 
-    }
+    public void Launch(Vector2 direction)
+{
+    if (rb == null)
+        rb = GetComponent<Rigidbody2D>();
+
+    rb.linearVelocity = direction.normalized * speed;
+}
+
 
     
 

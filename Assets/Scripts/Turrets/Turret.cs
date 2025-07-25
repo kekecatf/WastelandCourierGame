@@ -27,16 +27,18 @@ public class Turret : MonoBehaviour
     }
 
     void Shoot(Vector3 targetPosition)
-    {
-        Vector3 direction = (targetPosition - transform.position).normalized;
+{
+    Vector3 direction = (targetPosition - transform.position).normalized;
 
-        GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-        Rigidbody2D rb = bullet.GetComponent<Rigidbody2D>();
-        if (rb != null)
-        {
-            rb.linearVelocity = direction * bulletSpeed;
-        }
+    GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
+
+    WeaponBullet bulletScript = bullet.GetComponent<WeaponBullet>();
+    if (bulletScript != null)
+    {
+        bulletScript.Launch(direction);
     }
+}
+
 
     void OnDrawGizmosSelected()
     {

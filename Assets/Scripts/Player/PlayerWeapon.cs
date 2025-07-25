@@ -84,12 +84,13 @@ public class PlayerWeapon : MonoBehaviour
         {
             GameObject bulletObject = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
 
-            // ✅ Hasar değeri mermiye burada atanıyor
             WeaponBullet bulletScript = bulletObject.GetComponent<WeaponBullet>();
             if (bulletScript != null)
             {
                 bulletScript.damage = weaponData.damage;
+                bulletScript.Launch(firePoint.right);
             }
+
         }
         else
         {
