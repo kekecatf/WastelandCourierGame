@@ -15,7 +15,8 @@ MonoBehaviour:
   weaponName: Basic Gun
   isAutomatic: 0
   fireRate: 5
-  reloadTime: 1.5
-  damage: 3
+  damage: 1
   clipSize: 15
   maxAmmoCapacity: 30
+  reloadTime: 1.5
+  attackRange: 1.5

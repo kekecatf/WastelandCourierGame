@@ -84,39 +84,38 @@ public class Enemy : MonoBehaviour
     {
         currentHealth -= amount;
 
-        // Debug için
-        Debug.Log($"Enemy took {amount} damage. Current health: {currentHealth}/{maxHealth}");
-
         if (hpFillImage != null)
         {
             float fillValue = Mathf.Clamp01((float)currentHealth / maxHealth);
             hpFillImage.fillAmount = fillValue;
-            Debug.Log($"Fill amount set to: {fillValue}");
         }
 
         if (currentHealth <= 0)
         {
             animator.Play("Die");
-            Debug.Log("Enemy should die now!");
 
             // ALTIN DÜŞÜRME %25 ŞANS
             if (goldPrefab != null && Random.value < 0.25f)
             {
                 Instantiate(goldPrefab, transform.position, Quaternion.identity);
-                Debug.Log("💰 Düşman altın bıraktı!");
             }
 
             if (blueprintPrefabs.Length > 0 && Random.value < 0.75f)
             {
                 int index = Random.Range(0, blueprintPrefabs.Length);
                 Instantiate(blueprintPrefabs[index], transform.position, Quaternion.identity);
-                Debug.Log("📘 Düşman blueprint düşürdü!");
             }
 
 
             if (hpBarInstance != null)
                 Destroy(hpBarInstance);
             Destroy(gameObject);
+            PlayerStats playerStats = GameObject.FindWithTag("Player").GetComponent<PlayerStats>();
+            if (playerStats != null)
+            {
+                playerStats.AddXP(10); // İstersen düşmana özel bir değer verebilirsin
+            }
+
         }
 
     }
@@ -139,7 +138,6 @@ public class Enemy : MonoBehaviour
         if (enemyType == EnemyType.Exploder)
         {
             // Patlama efekti (ekleyebilirsin)
-            Debug.Log("💥 Patlayan mutant kendini yok etti!");
 
             if (hpBarInstance != null)
                 Destroy(hpBarInstance);
@@ -149,7 +147,6 @@ public class Enemy : MonoBehaviour
         }
         if (collision.CompareTag("Player"))
         {
-            Debug.Log("😈 Düşman oyuncuya çarptı!");
             // Hasar kodu buraya
         }
 

@@ -4,12 +4,12 @@ using UnityEngine;
 
 public class CraftingStation : MonoBehaviour
 {
-    public GameObject interactionPrompt; // "E'ye bas" uyarýsý için UI objesi
+    public GameObject interactionPrompt; // "E'ye bas" uyarï¿½sï¿½ iï¿½in UI objesi
     private bool playerInRange = false;
 
     private void Start()
     {
-        // Baþlangýçta uyarýyý gizle
+        // Baï¿½langï¿½ï¿½ta uyarï¿½yï¿½ gizle
         if (interactionPrompt != null)
         {
             interactionPrompt.SetActive(false);
@@ -18,11 +18,10 @@ public class CraftingStation : MonoBehaviour
 
     private void Update()
     {
-        // Eðer oyuncu menzildeyse ve 'E' tuþuna basarsa...
+        // Eï¿½er oyuncu menzildeyse ve 'E' tuï¿½una basarsa...
         if (playerInRange && Input.GetKeyDown(KeyCode.U))
         {
-            Debug.Log("U tuþuna basýldý ve oyuncu menzilde. CraftingSystem'e komut gönderiliyor...");
-            // CraftingSystem'e paneli açmasý için komut gönder.
+            // CraftingSystem'e paneli aï¿½masï¿½ iï¿½in komut gï¿½nder.
             CraftingSystem.Instance.OpenCraftingPanel();
 
             if (CraftingSystem.Instance != null)
@@ -31,19 +30,17 @@ public class CraftingStation : MonoBehaviour
             }
             else
             {
-                // Eðer bu hata görünürse, CraftingSystem hala sahnede yok demektir.
-                Debug.LogError("CraftingSystem.Instance bulunamadý!");
+                // Eï¿½er bu hata gï¿½rï¿½nï¿½rse, CraftingSystem hala sahnede yok demektir.
             }
         }
 
     }
 
-    // Oyuncu karavanýn alanýna girdiðinde
+    // Oyuncu karavanï¿½n alanï¿½na girdiï¿½inde
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
-            Debug.Log("Oyuncu karavan menziline girdi. playerInRange = true");
             playerInRange = true;
             if (interactionPrompt != null)
             {
@@ -52,18 +49,17 @@ public class CraftingStation : MonoBehaviour
         }
     }
 
-    // Oyuncu karavanýn alanýndan çýktýðýnda
+    // Oyuncu karavanï¿½n alanï¿½ndan ï¿½ï¿½ktï¿½ï¿½ï¿½nda
     private void OnTriggerExit2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
-            Debug.Log("Oyuncu karavan menzilinden çýktý. playerInRange = false");
             playerInRange = false;
             if (interactionPrompt != null)
             {
                 interactionPrompt.SetActive(false);
             }
-            // Oyuncu uzaklaþtýðýnda craft panelini de kapat.
+            // Oyuncu uzaklaï¿½tï¿½ï¿½ï¿½nda craft panelini de kapat.
             CraftingSystem.Instance.CloseCraftingPanel();
         }
     }

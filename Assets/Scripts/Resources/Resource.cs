@@ -46,6 +46,7 @@ public class Resource : MonoBehaviour
         }
 
         Destroy(gameObject);
+        
     }
 
     public void HitResource()

@@ -20,8 +20,9 @@ public class Bullet : MonoBehaviour
         }
     }
 
-    void OnTriggerEnter2D(Collider2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
+        // Sadece düşman veya hayvan objeleriyle etkileşime geç
         if (!collision.CompareTag("Enemy") && !collision.CompareTag("Animal"))
             return;
 
@@ -29,15 +30,20 @@ public class Bullet : MonoBehaviour
         {
             Enemy enemy = collision.GetComponent<Enemy>();
             if (enemy != null)
+            {
                 enemy.TakeDamage(damage);
+            }
         }
         else if (collision.CompareTag("Animal"))
         {
             Animal animal = collision.GetComponent<Animal>();
             if (animal != null)
+            {
                 animal.TakeDamage(damage);
+            }
         }
 
-        Destroy(gameObject);
+        Destroy(gameObject); // Mermi çarptıktan sonra yok edilir
     }
+
 }

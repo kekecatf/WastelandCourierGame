@@ -8,6 +8,7 @@ public class WeaponBullet : MonoBehaviour
     public float speed = 20f; // Hızı biraz artıralım, daha gerçekçi olur.
     public int damage = 10;
     private Rigidbody2D rb;
+    private bool hasHit = false;
 
     void Awake()
     {
@@ -23,25 +24,33 @@ public class WeaponBullet : MonoBehaviour
 
         // Mermi ekranda kaybolursa diye 3 saniye sonra kendini yok etsin.
         Destroy(gameObject, 3f);
+
+
     }
+
+    
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Oyuncuya veya diğer mermilere çarpmasını engellemek için kontrol ekleyebiliriz (isteğe bağlı).
-        if (collision.CompareTag("Player") || collision.CompareTag("Bullet"))
+        if (hasHit) return; // Daha önce çarpmışsa tekrar çalışmasın
+
+        if (!collision.CompareTag("Enemy") && !collision.CompareTag("Animal"))
+            return;
+
+        hasHit = true;
+
+        if (collision.CompareTag("Enemy"))
         {
-            return; // Hiçbir şey yapma
+            collision.GetComponent<Enemy>()?.TakeDamage(damage);
+        }
+        else if (collision.CompareTag("Animal"))
+        {
+            collision.GetComponent<Animal>()?.TakeDamage(damage);
         }
 
-        // Düşman bileşeni var mı kontrol et. Düşmanların "Enemy" tag'ine sahip olduğunu varsayıyoruz.
-        Enemy enemy = collision.GetComponent<Enemy>();
-        if (enemy != null)
-        {
-            enemy.TakeDamage(damage);
-        }
-
-        // Çarptıktan sonra mermiyi yok et.
-        // Bu, merminin birden fazla düşmana hasar vermesini engeller.
         Destroy(gameObject);
     }
+
+
+
 }

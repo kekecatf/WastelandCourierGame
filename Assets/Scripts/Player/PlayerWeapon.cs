@@ -57,9 +57,8 @@ public class PlayerWeapon : MonoBehaviour
         }
     }
 
-         private void RangedAttack()
+    private void RangedAttack()
     {
-        // Eski mermi atma kodumuz burada
         if (isReloading || currentAmmoInClip <= 0)
         {
             if (currentAmmoInClip <= 0 && !isReloading)
@@ -69,11 +68,8 @@ public class PlayerWeapon : MonoBehaviour
             return;
         }
 
-
-        // 2. KONTROL: Şarjör değiştiriyor mu, bekleme süresi doldu mu, mermi var mı?
         if (isReloading || Time.time < nextTimeToFire || currentAmmoInClip <= 0)
         {
-            // Mermi bittiyse ve şarjör değiştirmiyorsa, otomatik reload'u tetikle.
             if (currentAmmoInClip <= 0 && !isReloading)
             {
                 WeaponSlotManager.Instance.StartReload();
@@ -81,28 +77,28 @@ public class PlayerWeapon : MonoBehaviour
             return;
         }
 
-        // --- TÜM KONTROLLER GEÇİLDİ, ATEŞ ETME ZAMANI ---
-
-        // Bir sonraki ateş etme zamanını ayarla.
         nextTimeToFire = Time.time + 1f / weaponData.fireRate;
         currentAmmoInClip--;
 
-        // Mermi oluşturma işlemi
         if (bulletPrefab != null && firePoint != null)
         {
-            // Mermiyi oluştur.
-            Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+            GameObject bulletObject = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+
+            // ✅ Hasar değeri mermiye burada atanıyor
+            WeaponBullet bulletScript = bulletObject.GetComponent<WeaponBullet>();
+            if (bulletScript != null)
+            {
+                bulletScript.damage = weaponData.damage;
+            }
         }
         else
         {
-            // Bu hata, mermi veya ateş etme noktası atanmadığında sizi uyarır.
-            if (weaponData.clipSize > 0) // Sadece mermili silahlar için uyar
+            if (weaponData.clipSize > 0)
             {
                 Debug.LogWarning($"Ateş etmeye çalışıldı ama '{gameObject.name}' silahının 'bulletPrefab' veya 'firePoint' referansı eksik!");
             }
         }
-        
-        // UI'ı güncellemesi için Manager'a haber ver.
+
         WeaponSlotManager.Instance.UpdateAmmoText();
     }
 
@@ -112,7 +108,7 @@ public class PlayerWeapon : MonoBehaviour
         nextTimeToFire = Time.time + 1f / weaponData.fireRate;
 
         // 1. Animasyonu tetikle (varsa)
-        
+
 
         // 2. Saldırı alanındaki düşmanları tespit et
         // firePoint'in merkez olduğu, attackRange yarıçaplı bir daire çiz ve içindeki düşmanları bul.
@@ -136,11 +132,11 @@ public class PlayerWeapon : MonoBehaviour
     {
         isReloading = true;
         Debug.Log($"Reloading {weaponData.weaponName}...");
-        
+
         yield return new WaitForSeconds(weaponData.reloadTime);
 
         WeaponSlotManager.Instance.FinishReload();
-        
+
         isReloading = false;
         Debug.Log("Reload finished.");
     }
