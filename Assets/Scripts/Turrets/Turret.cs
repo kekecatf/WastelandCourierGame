@@ -6,6 +6,8 @@ public class Turret : MonoBehaviour
     public float fireRate = 1f;
     public GameObject bulletPrefab;
     public float bulletSpeed = 10f;
+    public Transform firePoint; // Inspector’dan atanacak
+
 
     private float fireTimer = 0f;
 
@@ -27,17 +29,20 @@ public class Turret : MonoBehaviour
     }
 
     void Shoot(Vector3 targetPosition)
-{
-    Vector3 direction = (targetPosition - transform.position).normalized;
-
-    GameObject bullet = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-
-    WeaponBullet bulletScript = bullet.GetComponent<WeaponBullet>();
-    if (bulletScript != null)
     {
-        bulletScript.Launch(direction);
+        Vector3 direction = (targetPosition - firePoint.position).normalized;
+
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, Quaternion.identity);
+
+        bullet.transform.right = direction; // Merminin yönünü firePoint yönüne döndür
+
+        WeaponBullet bulletScript = bullet.GetComponent<WeaponBullet>();
+        if (bulletScript != null)
+        {
+            bulletScript.Launch(direction);
+        }
     }
-}
+
 
 
     void OnDrawGizmosSelected()
