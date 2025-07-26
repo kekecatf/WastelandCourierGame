@@ -21,6 +21,9 @@ public class PlayerStats : MonoBehaviour
     public int level = 1;
     public int skillPoints = 0;
     public int xpToNextLevel = 100;
+    [Header("Sağlık")]
+    public int maxHealth = 100;
+    public int currentHealth;
 
     public delegate void OnLevelUp();
     public event OnLevelUp onLevelUp;
@@ -32,6 +35,8 @@ public class PlayerStats : MonoBehaviour
     {
         currentHunger = maxHunger;
         hungerTimer = hungerDecreaseInterval;
+
+        currentHealth = maxHealth;
     }
 
     void Update()
@@ -67,6 +72,27 @@ public class PlayerStats : MonoBehaviour
             inventoryCapacity += 10;
             gold -= 5;
             Debug.Log("🎒 Envanter genişletildi!");
+        }
+    }
+
+    public void TakeDamage(int damage)
+    {
+        
+        PlayerHealthUI healthUI = FindObjectOfType<PlayerHealthUI>();
+        if (healthUI != null)
+        {
+            healthUI.SetHealth(currentHealth, maxHealth);
+        }
+        currentHealth -= damage;
+        if (currentHealth <= 0)
+        {
+            currentHealth = 0;
+            Debug.Log("☠️ Oyuncu öldü!");
+            GameManager.Instance.GameOver();
+        }
+        else
+        {
+            Debug.Log($"❤️ Oyuncu hasar aldı: {currentHealth}/{maxHealth}");
         }
     }
 
