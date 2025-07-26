@@ -7,7 +7,8 @@ public class PlayerHealthUI : MonoBehaviour
 
     public void SetHealth(float current, float max)
     {
-        float amount = Mathf.Clamp01(current / max);
+        float amount = Mathf.Clamp01(Mathf.Max(current, 0) / max);
         fillImage.fillAmount = amount;
+
     }
 }
