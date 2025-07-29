@@ -103,6 +103,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   type: 2
   amount: 1
+  hitsRequired: 3
+  hitCooldown: 1
+  normalSprite: {fileID: 3305108379165262459, guid: ea5eb6121db97b543914f2dddd97be9a, type: 3}
+  highlightedSprite: {fileID: 4735667228514538081, guid: 19aa0ded0c2cb464d883df1b827d6133, type: 3}
 --- !u!61 &1798403022459164835
 BoxCollider2D:
   m_ObjectHideFlags: 0

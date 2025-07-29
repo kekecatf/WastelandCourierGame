@@ -17,6 +17,17 @@ public class Resource : MonoBehaviour
     private int currentHits = 0;
     private bool canBeHit = true; // Cooldown kontrolü için
 
+    public Sprite normalSprite;
+    public Sprite highlightedSprite;
+    private SpriteRenderer sr;
+
+    void Start()
+    {
+        sr = GetComponent<SpriteRenderer>();
+        if (sr != null && normalSprite != null)
+            sr.sprite = normalSprite;
+    }
+
 
     public void Collect()
     {
@@ -45,8 +56,9 @@ public class Resource : MonoBehaviour
                 break;
         }
 
+
         Destroy(gameObject);
-        
+
     }
 
     public void HitResource()
@@ -82,4 +94,16 @@ public class Resource : MonoBehaviour
         yield return new WaitForSeconds(hitCooldown);
         canBeHit = true;
     }
+
+    public void Highlight(bool state)
+    {
+        if (sr == null) sr = GetComponent<SpriteRenderer>();
+
+        if (state && highlightedSprite != null)
+            sr.sprite = highlightedSprite;
+        else if (normalSprite != null)
+            sr.sprite = normalSprite;
+    }
+
+
 }

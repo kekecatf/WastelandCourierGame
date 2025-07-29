@@ -77,7 +77,7 @@ public class PlayerStats : MonoBehaviour
 
     public void TakeDamage(int damage)
     {
-        
+
         PlayerHealthUI healthUI = FindObjectOfType<PlayerHealthUI>();
         if (healthUI != null)
         {
@@ -208,6 +208,15 @@ public class PlayerStats : MonoBehaviour
                 // UI Güncellemesi
                 WeaponPartsUI.Instance?.UpdatePartText(partInfo.partType, weaponParts[partInfo.partType]);
             }
+        }
+    }
+
+    public void EatCookedMeat()
+    {
+        if (RemoveResource("CookedMeat", 1))
+        {
+            currentHunger = Mathf.Min(maxHunger, currentHunger + 30); // daha fazla doyurur
+            Debug.Log("🍗 Pişmiş et yendi! Açlık: " + currentHunger);
         }
     }
 }

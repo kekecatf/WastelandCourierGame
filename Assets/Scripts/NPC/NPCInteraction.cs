@@ -4,11 +4,10 @@ using UnityEngine.InputSystem;
 public class NPCInteraction : MonoBehaviour
 {
     public GameObject tradeUIPanel;
+    public GameObject interactPromptUI;
 
     private bool isPlayerNearby = false;
     private bool isPanelOpen = false;
-    public GameObject interactPromptUI; // "E" yazan UI objesi
-
 
     void Update()
     {
@@ -19,6 +18,13 @@ public class NPCInteraction : MonoBehaviour
             else
                 CloseTrade();
         }
+
+        // Eğer panel açıksa fare mutlaka açık olmalı
+        if (isPanelOpen)
+        {
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
     }
 
     void OnTriggerEnter2D(Collider2D other)
@@ -26,45 +32,49 @@ public class NPCInteraction : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isPlayerNearby = true;
-            if (interactPromptUI != null)
-                interactPromptUI.SetActive(true);
+            interactPromptUI?.SetActive(true);
         }
     }
 
     void OnTriggerExit2D(Collider2D other)
+{
+    if (other.CompareTag("Player"))
     {
-        if (other.CompareTag("Player"))
-        {
-            isPlayerNearby = false;
+        isPlayerNearby = false;
+
+        // interactPromptUI sahnede yoksa hata verir
+        if (interactPromptUI != null)
+            interactPromptUI.SetActive(false);
+
+        // tradeUIPanel destroy edilmiş olabilir, kontrol şart
+        if (tradeUIPanel != null)
             CloseTrade();
-            if (interactPromptUI != null)
-                interactPromptUI.SetActive(false);
-        }
     }
+}
+
 
     void OpenTrade()
     {
-        if (tradeUIPanel != null)
-        {
-            tradeUIPanel.SetActive(true);
-            isPanelOpen = true;
-            Time.timeScale = 0f;
-            Cursor.visible = true;
-        }
+        tradeUIPanel?.SetActive(true);
+        isPanelOpen = true;
+        Time.timeScale = 0f;
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
     }
 
     void CloseTrade()
+{
+    // Obje Destroy edilmişse artık kullanılamaz, önce null kontrolü yap
+    if (tradeUIPanel != null)
     {
-        if (tradeUIPanel != null)
-        {
-            tradeUIPanel.SetActive(false);
-            isPanelOpen = false;
-            Time.timeScale = 1f;
-
-            // Sadece oyun normal duruma döndüyse imleci gizle
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
-        }
+        tradeUIPanel.SetActive(false);
     }
+
+    isPanelOpen = false;
+    Time.timeScale = 1f;
+
+    Cursor.visible = false;
+    Cursor.lockState = CursorLockMode.None;
+}
 
 }

@@ -5,5 +5,7 @@ public enum ResourceType
     scrapMetal,
     Meat,
     DeerHide,
-    RabbitHide
+    RabbitHide,
+    CookedMeat
+
 }
