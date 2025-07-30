@@ -61,6 +61,7 @@ public class PlayerInventory : MonoBehaviour
             collectedParts.Add(partType, amount);
         }
 
+        Debug.Log($"{amount} adet {partType} eklendi. Toplam: {collectedParts[partType]}");
         UpdateInventoryUI(); // UI'� an�nda g�ncelle
     }
 
@@ -97,11 +98,13 @@ public class PlayerInventory : MonoBehaviour
         {
             if (!collectedParts.ContainsKey(requirement.partType) || collectedParts[requirement.partType] < requirement.amount)
             {
+                Debug.Log($"Craft BA�ARISIZ: Yeterli {requirement.partType} yok.");
                 return; // Bir par�a bile eksikse, i�lemi durdur.
             }
         }
 
         // T�m par�alar varsa, craft i�lemi ba�ar�l�!
+        Debug.Log($"Craft BA�ARILI: {blueprint.weaponName} �retildi!");
 
         // 1. Par�alar� envanterden d��
         foreach (var requirement in blueprint.requiredParts)
@@ -114,11 +117,5 @@ public class PlayerInventory : MonoBehaviour
 
         // 3. UI'� g�ncelle
         UpdateInventoryUI();
-        PlayerStats stats = FindObjectOfType<PlayerStats>();
-if (stats != null)
-{
-    stats.AddXP(20); // Craft başarıyla olursa XP kazan
-}
-
     }
 }

@@ -1,68 +1,106 @@
-// WeaponAim.cs (G�NCELLENM�� VE �Y�LE�T�R�LM�� HAL�)
+// WeaponAim.cs (GÖRSEL MARKER SİSTEMİ İLE ÇALIŞAN SON HALİ)
 
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class WeaponAim : MonoBehaviour
 {
-    // Inspector'dan atama yapabilmek i�in bu referanslar� public yap�yoruz.
-    // Bu sayede her silah�n farkl� g�rsel ve ate� etme noktas� olabilir.
-    [Tooltip("D�necek olan silah�n g�rselini temsil eden Transform.")]
-    public Transform weaponVisual;
-
-    [Tooltip("Merminin olu�turulaca�� noktan�n Transform'u.")]
+    [Header("Core Components")]
+    public Transform weaponPivot; 
     public Transform firePoint;
+    private SpriteRenderer weaponSpriteRenderer;
 
-    private void Update()
+    [Header("Position Markers (Visual Setup)")]
+    [Tooltip("Yanlara nişan alırken FirePoint'in pozisyonunu belirleyen marker.")]
+    public Transform markerSide;
+    [Tooltip("Yukarı nişan alırken FirePoint'in pozisyonunu belirleyen marker.")]
+    public Transform markerUp;
+    [Tooltip("Aşağı nişan alırken FirePoint'in pozisyonunu belirleyen marker.")]
+    public Transform markerDown;
+
+    [Header("Aim Settings")]
+    [Range(1, 180)]
+    public float aimAngleLimit = 90f;
+
+    private void Awake()
     {
-        // E�er Camera.main null ise veya oyun duraklat�ld�ysa i�lem yapma.
-        if (Camera.main == null) return;
-        
-        HandleAiming();
-    }
-
-    private void HandleAiming()
-{
-    Vector3 mousePosition = Mouse.current.position.ReadValue();
-    mousePosition.z = -Camera.main.transform.position.z;
-    Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
-
-    Vector3 aimDirection = (worldPosition - transform.position).normalized;
-    float angle = Mathf.Atan2(aimDirection.y, aimDirection.x) * Mathf.Rad2Deg;
-    Quaternion targetRotation = Quaternion.Euler(0f, 0f, angle);
-
-    if (weaponVisual != null)
-    {
-        weaponVisual.rotation = targetRotation;
-    }
-    if (firePoint != null)
-    {
-        firePoint.rotation = targetRotation;
-    }
-
-    HandleFlipping(angle);
-}
-
-    private void HandleFlipping(float angle)
-    {
-        if (weaponVisual == null) return;
-
-        Vector3 currentScale = weaponVisual.localScale;
-
-        // Fare karakterin soluna ge�ti�inde (a�� > 90 veya < -90)
-        if (angle > 90f || angle < -90f)
+        if (weaponPivot != null)
         {
-            // Sprite'�n y eksenindeki scale de�erini negatif yap.
-            // Mathf.Abs, orijinal scale'in -1 veya 1 olmas�ndan ba��ms�z �al��mas�n� sa�lar.
-            currentScale.y = -Mathf.Abs(currentScale.y);
+            weaponSpriteRenderer = weaponPivot.GetComponentInChildren<SpriteRenderer>();
+        }
+    }
+
+    private void LateUpdate()
+    {
+        if (Camera.main == null || weaponPivot == null || firePoint == null) return;
+        
+        // Bu iki fonksiyon, pozisyonu ve rotasyonu yönetir.
+        UpdateFirePointTransform();
+        HandleAimRotation();
+    }
+    
+    // YENİ: Bu fonksiyon, FirePoint'in pozisyonunu ve rotasyonunu marker'lara göre ayarlar.
+    private void UpdateFirePointTransform()
+    {
+        Vector2 moveDirection = PlayerMovement.LastDiscretizedDirection;
+        float facingDirectionX = (moveDirection.x != 0) ? Mathf.Sign(moveDirection.x) : PlayerMovement.FacingDirection;
+
+        Transform targetMarker = markerSide; // Varsayılan olarak yan marker'ı kullan
+
+        // Oyuncunun ana hareket yönüne göre doğru marker'ı seç
+        if (Mathf.Abs(moveDirection.y) > Mathf.Abs(moveDirection.x)) // Dikey hareket baskınsa
+        {
+            targetMarker = (moveDirection.y > 0) ? markerUp : markerDown;
+        }
+        
+        if (targetMarker != null)
+        {
+            // FirePoint'in yerel pozisyonunu ve rotasyonunu marker'ınkiyle eşitle.
+            firePoint.localPosition = targetMarker.localPosition;
+            firePoint.localRotation = targetMarker.localRotation;
+
+            // Eğer yan marker kullanılıyorsa, X ekseninde simetriyi uygula.
+            if (targetMarker == markerSide)
+            {
+                Vector3 pos = firePoint.localPosition;
+                pos.x *= facingDirectionX;
+                firePoint.localPosition = pos;
+            }
+        }
+    }
+    
+    private void HandleAimRotation()
+    {
+        // ... (Bu fonksiyonun içeriği bir önceki cevaptaki gibi, HİÇBİR DEĞİŞİKLİK YOK) ...
+        Vector3 mousePosition = Mouse.current.position.ReadValue();
+        Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
+        Vector3 aimDirection = (worldPosition - weaponPivot.position).normalized;
+        float angle = Mathf.Atan2(aimDirection.y, aimDirection.x) * Mathf.Rad2Deg;
+        Vector2 moveDirection = PlayerMovement.LastDiscretizedDirection;
+        float facingDirectionX = (moveDirection.x != 0) ? Mathf.Sign(moveDirection.x) : PlayerMovement.FacingDirection;
+
+        if (weaponSpriteRenderer != null)
+        {
+            weaponSpriteRenderer.flipX = (facingDirectionX < 0);
+            weaponSpriteRenderer.flipY = (facingDirectionX < 0);
+        }
+        
+        float baseAngle = 0f;
+        if (Mathf.Abs(moveDirection.y) > Mathf.Abs(moveDirection.x))
+        {
+            baseAngle = (moveDirection.y > 0) ? 90f : -90f;
         }
         else
         {
-            // Fare sa� taraftayken y eksenindeki scale de�erini pozitif yap.
-            currentScale.y = Mathf.Abs(currentScale.y);
+            baseAngle = (facingDirectionX < 0) ? 180f : 0f;
         }
 
-        // Hesaplanm�� yeni scale de�erini uygula.
-        weaponVisual.localScale = currentScale;
+        float clampedAngle = Mathf.DeltaAngle(baseAngle, angle);
+        float halfAngleLimit = aimAngleLimit / 2f;
+        clampedAngle = Mathf.Clamp(clampedAngle, -halfAngleLimit, halfAngleLimit);
+        float finalAngle = baseAngle + clampedAngle;
+
+        Quaternion targetRotation = Quaternion.Euler(0f, 0f, finalAngle);
+        weaponPivot.rotation = targetRotation;
     }
 }

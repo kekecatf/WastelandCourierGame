@@ -15,9 +15,6 @@ public class Enemy : MonoBehaviour
     public float moveSpeed = 2f;
     public int damageToCaravan = 1;
     private Animator animator;
-    private Transform player;
-    public float playerDetectRange = 4f;
-
 
 
 
@@ -67,22 +64,15 @@ public class Enemy : MonoBehaviour
         }
 
         animator = GetComponent<Animator>();
-
-        player = GameObject.FindWithTag("Player")?.transform;
-
     }
 
 
     void Update()
     {
-        if (player == null || target == null) return;
+        if (target == null) return;
 
-        float distToPlayer = Vector2.Distance(transform.position, player.position);
-        Transform currentTarget = (distToPlayer <= playerDetectRange) ? player : target;
-
-        Vector2 direction = (currentTarget.position - transform.position).normalized;
+        Vector2 direction = (target.position - transform.position).normalized;
         transform.position += (Vector3)(direction * Time.deltaTime * moveSpeed);
-
 
 
         // Can barı pozisyon güncellemesi artık gerekli değil çünkü parent olarak ayarlandı
@@ -94,65 +84,74 @@ public class Enemy : MonoBehaviour
     {
         currentHealth -= amount;
 
+        // Debug için
+        Debug.Log($"Enemy took {amount} damage. Current health: {currentHealth}/{maxHealth}");
+
         if (hpFillImage != null)
         {
             float fillValue = Mathf.Clamp01((float)currentHealth / maxHealth);
             hpFillImage.fillAmount = fillValue;
+            Debug.Log($"Fill amount set to: {fillValue}");
         }
 
         if (currentHealth <= 0)
         {
             animator.Play("Die");
+            Debug.Log("Enemy should die now!");
 
             // ALTIN DÜŞÜRME %25 ŞANS
             if (goldPrefab != null && Random.value < 0.25f)
             {
                 Instantiate(goldPrefab, transform.position, Quaternion.identity);
+                Debug.Log("💰 Düşman altın bıraktı!");
             }
 
             if (blueprintPrefabs.Length > 0 && Random.value < 0.75f)
             {
                 int index = Random.Range(0, blueprintPrefabs.Length);
                 Instantiate(blueprintPrefabs[index], transform.position, Quaternion.identity);
+                Debug.Log("📘 Düşman blueprint düşürdü!");
             }
 
 
             if (hpBarInstance != null)
                 Destroy(hpBarInstance);
             Destroy(gameObject);
-            PlayerStats playerStats = GameObject.FindWithTag("Player").GetComponent<PlayerStats>();
-            if (playerStats != null)
-            {
-                playerStats.AddXP(10); // İstersen düşmana özel bir değer verebilirsin
-            }
-
         }
 
     }
 
     void OnTriggerEnter2D(Collider2D collision)
-{
-    if (enemyType == EnemyType.Exploder)
     {
-        // Patlama hasarı uygula
-        if (collision.CompareTag("Player"))
-        {
-            PlayerStats stats = collision.GetComponent<PlayerStats>();
-            if (stats != null)
-                stats.TakeDamage(damageToCaravan);
-        }
-
         if (collision.CompareTag("Caravan"))
         {
+            animator.Play("Hitting");
             CaravanHealth caravan = collision.GetComponent<CaravanHealth>();
             if (caravan != null)
-                caravan.TakeDamage(damageToCaravan);
+                caravan.TakeDamage(1);
+
+            if (hpBarInstance != null)
+                Destroy(hpBarInstance);
+
+            Destroy(gameObject);
+            animator.Play("Die");
+        }
+        if (enemyType == EnemyType.Exploder)
+        {
+            // Patlama efekti (ekleyebilirsin)
+            Debug.Log("💥 Patlayan mutant kendini yok etti!");
+
+            if (hpBarInstance != null)
+                Destroy(hpBarInstance);
+
+            // Oyuncuya da zarar verebilirsin burada
+            Destroy(gameObject);
+        }
+        if (collision.CompareTag("Player"))
+        {
+            Debug.Log("😈 Düşman oyuncuya çarptı!");
+            // Hasar kodu buraya
         }
 
-        animator?.Play("Die");
-        Destroy(hpBarInstance);
-        Destroy(gameObject);
     }
-}
-
 }

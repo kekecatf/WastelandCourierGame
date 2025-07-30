@@ -1,7 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 
-// Bu, bir silahý craftlamak için gereken parçalarý ve miktarlarýný tanýmlar.
+// Bu, bir silahï¿½ craftlamak iï¿½in gereken parï¿½alarï¿½ ve miktarlarï¿½nï¿½ tanï¿½mlar.
 [System.Serializable]
 public class PartRequirement
 {
@@ -13,12 +13,16 @@ public class PartRequirement
 public class WeaponBlueprint : ScriptableObject
 {
     public string weaponName;
+    [TextArea] public string description; // Silah aÃ§Ä±klamasÄ± iÃ§in
     public Sprite weaponIcon;
-
-    // Craft edilecek silahýn WeaponSlotManager'daki slot index'i
-    // 0: Makineli, 1: Tabanca, 2: Kýlýç ...
     public int weaponSlotIndexToUnlock;
 
-    // Bu tarif için gereken parçalarýn listesi
+    // YENÄ°: Temel kaynak gereksinimleri
+    [Header("Resource Requirements")]
+    public int requiredStone = 0;
+    public int requiredWood = 0;
+    public int requiredScrapMetal = 0;
+
+    [Header("Part Requirements")]
     public List<PartRequirement> requiredParts;
 }

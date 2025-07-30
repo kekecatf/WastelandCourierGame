@@ -1,22 +1,28 @@
-// CraftingSystem.cs (KARAVAN SÝSTEMÝNE UYGUN HALÝ)
+// WeaponCraftingSystem.cs (TEMÄ°ZLENMÄ°Åž VE TAM HALÄ°)
 
 using UnityEngine;
 using System.Collections.Generic;
+using TMPro;
+using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
-public class CraftingSystem : MonoBehaviour
+public class WeaponCraftingSystem : MonoBehaviour
 {
-    public static CraftingSystem Instance { get; private set; }
+    public static WeaponCraftingSystem Instance { get; private set; }
 
     [Header("Crafting Data")]
     public List<WeaponBlueprint> availableBlueprints;
 
     [Header("UI References")]
-    public GameObject craftingPanel; // Ana panel
-    public Transform blueprintsContainer; // Tariflerin gösterileceði UI container
-    public GameObject blueprintUIPrefab; // Bir tarifi temsil eden UI prefab'ý
-
+    public GameObject craftingPanel;
+    public Transform requirementsContainer;
+    public GameObject requirementLinePrefab;
+    public TextMeshProUGUI craftPromptText;
+    
+    // UI elemanlarÄ±nÄ± tutmak iÃ§in bir liste (Ã¶nceki hatalÄ± kodda eksikti)
+    private List<BlueprintUI> blueprintUIElements = new List<BlueprintUI>(); 
     private PlayerStats playerStats;
-    private List<BlueprintUI> blueprintUIElements = new List<BlueprintUI>();
+    private WeaponBlueprint selectedBlueprint;
 
     void Awake()
     {
@@ -26,69 +32,117 @@ public class CraftingSystem : MonoBehaviour
     void Start()
     {
         playerStats = FindObjectOfType<PlayerStats>();
-        InitializeCraftingPanel();
-        craftingPanel.SetActive(false); // Baþlangýçta paneli gizle
+        if (playerStats == null) Debug.LogError("Sahnede PlayerStats bulunamadÄ±!");
+
+        InitializeBlueprintList(); // UI listesini baÅŸlangÄ±Ã§ta oluÅŸtur.
+        if (craftingPanel != null) craftingPanel.SetActive(false);
+        ClearDetailInfo();
     }
 
-    // --- Panel Kontrol Fonksiyonlarý (CraftingStation tarafýndan çaðrýlacak) ---
-    public void OpenCraftingPanel()
+    void Update()
     {
-        // 4. KONTROL: Bu fonksiyon çaðrýlýyor mu?
-        Debug.Log("OpenCraftingPanel() fonksiyonu ÇAÐRILDI.");
-
-        if (craftingPanel != null)
+        if (Keyboard.current != null && Keyboard.current.iKey.wasPressedThisFrame && CraftingStation.IsPlayerInRange)
         {
-            craftingPanel.SetActive(true);
-            // 5. KONTROL: Panel aktif edildi mi?
-            Debug.Log("craftingPanel.SetActive(true) komutu çalýþtýrýldý. Panelin sahnede görünmesi lazým.");
-            UpdateAllBlueprintUI();
+            ToggleCraftingPanel();
+        }
+
+        if (craftingPanel.activeSelf && selectedBlueprint != null && CanCraft(selectedBlueprint))
+        {
+            if (Keyboard.current != null && Keyboard.current.cKey.wasPressedThisFrame)
+            {
+                TryCraftWeapon();
+            }
+        }
+    }
+    
+    // UI listesini sadece bir kere, oyun baÅŸÄ±nda oluÅŸturur.
+    private void InitializeBlueprintList()
+    {
+        // Not: Bu sistem, UI elemanlarÄ±nÄ± kodla oluÅŸturur. EÄŸer statik bir listeniz varsa,
+        // bu fonksiyonu Inspector'dan referanslarÄ± alacak ÅŸekilde dÃ¼zenleyebilirsiniz.
+        // Åžimdilik dinamik oluÅŸturma varsayÄ±yoruz.
+        // foreach (var blueprint in availableBlueprints) { ... }
+    }
+
+    public void ToggleCraftingPanel()
+    {
+        bool isActive = !craftingPanel.activeSelf;
+        craftingPanel.SetActive(isActive);
+
+        if (isActive)
+        {
+            UpdateAllBlueprintUI(); // Panel aÃ§Ä±ldÄ±ÄŸÄ±nda UI'Ä± gÃ¼ncelle
         }
         else
         {
-            // EÐER BU HATA GÖRÜNÜRSE, SORUN BUDUR!
-            Debug.LogError("HATA: CraftingSystem üzerindeki 'craftingPanel' referansý atanmamýþ (null)!");
+            selectedBlueprint = null;
+            ClearDetailInfo();
         }
     }
 
-    public void CloseCraftingPanel()
+    public void SelectBlueprint(WeaponBlueprint blueprint)
     {
-        craftingPanel.SetActive(false);
+        Debug.Log($"<color=yellow>SEÃ‡Ä°LDÄ°:</color> {blueprint.weaponName} tarifi inceleniyor.");
+        selectedBlueprint = blueprint;
+        UpdateDetailPanel();
     }
-
-    // --- Kurulum ve UI Güncelleme ---
-    private void InitializeCraftingPanel()
-    {
-        foreach (Transform child in blueprintsContainer) Destroy(child.gameObject);
-        blueprintUIElements.Clear();
-
-        foreach (var blueprint in availableBlueprints)
-        {
-            GameObject uiObject = Instantiate(blueprintUIPrefab, blueprintsContainer);
-            BlueprintUI blueprintUI = uiObject.GetComponent<BlueprintUI>();
-
-            // UI elemanýna gerekli bilgileri ve fonksiyonu ata
-            blueprintUI.Setup(blueprint, () => TryCraftWeapon(blueprint));
-
-            blueprintUIElements.Add(blueprintUI);
-        }
-    }
-
+    
+    // Paneli aÃ§tÄ±ÄŸÄ±nda veya bir craft yaptÄ±ÄŸÄ±nda tÃ¼m UI elemanlarÄ±nÄ± gÃ¼nceller.
     public void UpdateAllBlueprintUI()
     {
+        // Bu fonksiyonun Ã§alÄ±ÅŸmasÄ± iÃ§in blueprintUIElements listesinin dolu olmasÄ± gerekir.
+        // EÄŸer UI elemanlarÄ±nÄ± Inspector'dan manuel olarak atÄ±yorsanÄ±z, bu listeyi de manuel doldurmalÄ±sÄ±nÄ±z.
         foreach (var uiElement in blueprintUIElements)
         {
-            bool canBeCrafted = CanCraft(uiElement.GetBlueprint());
-            uiElement.SetCraftableStatus(canBeCrafted);
+            uiElement.UpdateStatus();
         }
     }
 
-    // --- Craft Mantýðý ---
-    private bool CanCraft(WeaponBlueprint blueprint)
+    private void UpdateDetailPanel()
     {
-        // Eðer bu silahýn kilidi zaten açýksa, tekrar craftlanamaz.
-        if (WeaponSlotManager.Instance.IsWeaponUnlocked(blueprint.weaponSlotIndexToUnlock))
+        if (selectedBlueprint == null)
         {
-            return false;
+            ClearDetailInfo();
+            return;
+        }
+
+        foreach (Transform child in requirementsContainer) Destroy(child.gameObject);
+        Debug.Log($"{selectedBlueprint.weaponName} iÃ§in {selectedBlueprint.requiredParts.Count} adet parÃ§a gereksinimi var.");
+        foreach (var partReq in selectedBlueprint.requiredParts)
+        {
+            int currentAmount = playerStats.GetWeaponPartCount(partReq.partType);
+            AddRequirementLine(partReq.partType.ToString(), currentAmount, partReq.amount);
+        }
+
+        if (craftPromptText != null)
+        {
+            craftPromptText.gameObject.SetActive(CanCraft(selectedBlueprint));
+        }
+    }
+
+    private void ClearDetailInfo()
+    {
+        foreach (Transform child in requirementsContainer) Destroy(child.gameObject);
+        if (craftPromptText != null) craftPromptText.gameObject.SetActive(false);
+    }
+
+    private void AddRequirementLine(string itemName, int current, int required)
+    {
+        if (required > 0 && requirementLinePrefab != null)
+        {
+            GameObject lineObject = Instantiate(requirementLinePrefab, requirementsContainer);
+            lineObject.GetComponent<RequirementLineUI>().Setup(itemName, current, required);
+        }
+    }
+
+    public bool CanCraft(WeaponBlueprint blueprint)
+    {
+        if (blueprint == null || playerStats == null) return false;
+
+        // CaravanInventory'de depolanmÄ±ÅŸ mÄ± diye kontrol et.
+        if (CaravanInventory.Instance != null && CaravanInventory.Instance.IsWeaponStored(blueprint))
+        {
+            return false; // Zaten Ã¼retilmiÅŸ ve depoda.
         }
 
         foreach (var requirement in blueprint.requiredParts)
@@ -101,19 +155,20 @@ public class CraftingSystem : MonoBehaviour
         return true;
     }
 
-    public void TryCraftWeapon(WeaponBlueprint blueprint)
+    // Sadece TEK BÄ°R TryCraftWeapon fonksiyonu olmalÄ±.
+    public void TryCraftWeapon()
     {
-        if (CanCraft(blueprint))
+        if (CanCraft(selectedBlueprint))
         {
-            playerStats.ConsumeWeaponParts(blueprint.requiredParts);
-            WeaponSlotManager.Instance.UnlockWeapon(blueprint.weaponSlotIndexToUnlock);
-            UpdateAllBlueprintUI(); // Craft sonrasý UI'ý tekrar güncelle
-
-            Debug.Log($"Craft BAÞARILI: {blueprint.weaponName} üretildi!");
-        }
-        else
-        {
-            Debug.LogWarning("Craft BAÞARISIZ: Yeterli parça yok veya silah zaten açýk.");
+            playerStats.ConsumeWeaponParts(selectedBlueprint.requiredParts);
+            
+            // SilahÄ± Karavan'Ä±n deposuna gÃ¶nder.
+            CaravanInventory.Instance.StoreWeapon(selectedBlueprint);
+            
+            UpdateDetailPanel();
+            UpdateAllBlueprintUI();
+            
+            Debug.Log($"Craft BAÅžARILI: {selectedBlueprint.weaponName} Ã¼retildi ve depoya gÃ¶nderildi!");
         }
     }
 }

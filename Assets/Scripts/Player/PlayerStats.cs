@@ -21,9 +21,6 @@ public class PlayerStats : MonoBehaviour
     public int level = 1;
     public int skillPoints = 0;
     public int xpToNextLevel = 100;
-    [Header("Sağlık")]
-    public int maxHealth = 100;
-    public int currentHealth;
 
     public delegate void OnLevelUp();
     public event OnLevelUp onLevelUp;
@@ -35,8 +32,6 @@ public class PlayerStats : MonoBehaviour
     {
         currentHunger = maxHunger;
         hungerTimer = hungerDecreaseInterval;
-
-        currentHealth = maxHealth;
     }
 
     void Update()
@@ -72,27 +67,6 @@ public class PlayerStats : MonoBehaviour
             inventoryCapacity += 10;
             gold -= 5;
             Debug.Log("🎒 Envanter genişletildi!");
-        }
-    }
-
-    public void TakeDamage(int damage)
-    {
-
-        PlayerHealthUI healthUI = FindObjectOfType<PlayerHealthUI>();
-        if (healthUI != null)
-        {
-            healthUI.SetHealth(currentHealth, maxHealth);
-        }
-        currentHealth -= damage;
-        if (currentHealth <= 0)
-        {
-            currentHealth = 0;
-            Debug.Log("☠️ Oyuncu öldü!");
-            GameManager.Instance.GameOver();
-        }
-        else
-        {
-            Debug.Log($"❤️ Oyuncu hasar aldı: {currentHealth}/{maxHealth}");
         }
     }
 
@@ -147,16 +121,17 @@ public class PlayerStats : MonoBehaviour
     }
 
 
-    public void CollectWeaponPart(WeaponPartType part)
-    {
-        if (!weaponParts.ContainsKey(part))
-            weaponParts[part] = 0;
+    public void CollectWeaponPart(WeaponPartType part, int amountToCollect = 1)
+{
+    if (!weaponParts.ContainsKey(part))
+        weaponParts[part] = 0;
 
-        weaponParts[part]++;
-        Debug.Log($"🧩 {part} parçası toplandı. Şu an: {weaponParts[part]}");
+    // Artık sabit olarak 1 değil, gelen 'amountToCollect' değeri kadar ekliyor.
+    weaponParts[part] += amountToCollect; 
+    Debug.Log($"🧩 {amountToCollect} adet {part} parçası toplandı. Şu an: {weaponParts[part]}");
 
-        WeaponPartsUI.Instance?.UpdatePartText(part, weaponParts[part]);
-    }
+    WeaponPartsUI.Instance?.UpdatePartText(part, weaponParts[part]);
+}
     public int GetWeaponPartCount(WeaponPartType part)
     {
         return weaponParts.ContainsKey(part) ? weaponParts[part] : 0;
@@ -210,6 +185,7 @@ public class PlayerStats : MonoBehaviour
             }
         }
     }
+
 
     public void EatCookedMeat()
     {

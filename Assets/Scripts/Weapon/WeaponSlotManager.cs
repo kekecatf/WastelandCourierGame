@@ -3,6 +3,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
+using System.Collections.Generic;
 
 public class WeaponSlotManager : MonoBehaviour
 {
@@ -17,10 +18,18 @@ public class WeaponSlotManager : MonoBehaviour
 
     private bool[] unlockedWeapons;
 
+    private WeaponBlueprint[] equippedBlueprints;
+
+    [Header("Starting Equipment")]
+    public List<WeaponBlueprint> startingEquippedWeapons;
+
+
     // --- SİSTEM DEĞİŞKENLERİ ---
     public static WeaponSlotManager Instance { get; private set; }
     private PlayerWeapon activeWeapon;
     private int activeSlotIndex = -1; // -1, başlangıçta hiçbir silahın aktif olmadığını belirtir.
+
+    private bool emptyClipSoundPlayedThisPress = false;
 
     // Mermi Yönetimi
     private int[] ammoInClips;
@@ -45,6 +54,16 @@ public class WeaponSlotManager : MonoBehaviour
         // Kilit dizisini oluştur.
         unlockedWeapons = new bool[weaponSlots.Length];
 
+        equippedBlueprints = new WeaponBlueprint[weaponSlots.Length];
+
+        foreach (var blueprint in startingEquippedWeapons)
+        {
+            if (blueprint != null)
+            {
+                EquipBlueprint(blueprint);
+            }
+        }
+
         // Başlangıçta, weaponSlots dizisine atanmış olan TÜM silahların kilidini AÇIK yap.
         // Bu, oyuna eklediğiniz ilk 3 silahın direkt kullanılabilir olmasını sağlar.
         for (int i = 0; i < unlockedWeapons.Length; i++)
@@ -63,6 +82,41 @@ public class WeaponSlotManager : MonoBehaviour
         }
 
         InitializeAmmo();
+    }
+
+    public WeaponBlueprint GetBlueprintForSlot(int slotIndex)
+    {
+        if (slotIndex >= 0 && slotIndex < equippedBlueprints.Length)
+        {
+            return equippedBlueprints[slotIndex];
+        }
+        return null;
+    }
+
+    public void EquipBlueprint(WeaponBlueprint blueprintToEquip)
+    {
+        if (blueprintToEquip == null) return;
+        
+        int slotIndex = blueprintToEquip.weaponSlotIndexToUnlock;
+        if (slotIndex >= 0 && slotIndex < equippedBlueprints.Length)
+        {
+            equippedBlueprints[slotIndex] = blueprintToEquip;
+            Debug.Log($"{blueprintToEquip.weaponName}, Slot {slotIndex}'e kuşandırıldı.");
+
+            // Eğer o an o slot aktifse, değişikliği anında yansıt.
+            if (activeSlotIndex == slotIndex)
+            {
+                SwitchToSlot(slotIndex);
+            }
+        }
+    }
+
+
+
+    public bool IsWeaponEquipped(WeaponBlueprint blueprint)
+    {
+        int slotIndex = blueprint.weaponSlotIndexToUnlock;
+        return equippedBlueprints[slotIndex] == blueprint;
     }
 
     public void UnlockWeapon(int slotIndex)
@@ -113,6 +167,11 @@ public class WeaponSlotManager : MonoBehaviour
 
         // Aktif bir silah yoksa, sonraki işlemleri yapma.
         if (activeWeapon == null) return;
+
+        if (Mouse.current.leftButton.wasReleasedThisFrame)
+        {
+            emptyClipSoundPlayedThisPress = false;
+        }
 
         HandleShootingInput();
         HandleReloadInput();
@@ -223,16 +282,47 @@ public class WeaponSlotManager : MonoBehaviour
 {
     if (Mouse.current == null) return;
 
-    if (activeWeapon.weaponData.isAutomatic)
-    {
-        if (Mouse.current.leftButton.isPressed)
-            activeWeapon.Shoot();
+        if (activeWeapon.weaponData.isAutomatic)
+        {
+            if (Mouse.current.leftButton.isPressed)
+                
+            
+            if (activeWeapon.GetCurrentAmmoInClip() > 0)
+                {
+                    // Mermi varsa, bayrağı sıfırla ve ateş et.
+                    emptyClipSoundPlayedThisPress = false;
+                    activeWeapon.Shoot();
+                }
+                else // Mermi yoksa...
+                {
+                    // "Tık" sesi bu basış sırasında daha önce çalınmadıysa...
+                    if (!emptyClipSoundPlayedThisPress)
+                    {
+                        // ...sesi çal ve bayrağı setle.
+                        activeWeapon.PlayEmptyClipSound();
+                        emptyClipSoundPlayedThisPress = true;
+                        
+                        // Otomatik reload'u da sadece bir kez dene.
+                        StartReload();
+                    }
+                }
     }
-    else
-    {
-        if (Mouse.current.leftButton.wasPressedThisFrame)
-            activeWeapon.Shoot();
-    }
+        else
+        {
+            if (Mouse.current.leftButton.wasPressedThisFrame)
+                if (Mouse.current.leftButton.wasPressedThisFrame)
+            {
+                if (activeWeapon.GetCurrentAmmoInClip() > 0)
+                {
+                    activeWeapon.Shoot();
+                }
+                else
+                {
+                    activeWeapon.PlayEmptyClipSound();
+                    StartReload();
+                }
+            }
+        }
 }
 
 

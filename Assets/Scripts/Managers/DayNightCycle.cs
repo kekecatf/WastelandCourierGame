@@ -16,6 +16,7 @@ public class DayNightCycle : MonoBehaviour
 
     public Transform[] spawnPoints; // Düşman spawn noktaları
 
+
     void Start()
     {
         isDay = true;
@@ -37,6 +38,8 @@ public class DayNightCycle : MonoBehaviour
                 SetAnimalsNightState(false);
                 lightController?.SetDay(true);
                 timer = dayDuration;
+
+
             }
             else
             {
@@ -45,6 +48,8 @@ public class DayNightCycle : MonoBehaviour
                 SetAnimalsNightState(true);
                 lightController?.SetDay(false);
                 timer = nightDuration;
+
+
             }
         }
     }
