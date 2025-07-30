@@ -9,11 +9,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ee571c4d90443c4f85439d50d1be434, type: 3}
+  m_Script: {fileID: 11500000, guid: 720be20c1085a254bad8652c10f2e4a3, type: 3}
   m_Name: TradeForMagazine
   m_EditorClassIdentifier: 
-  requiredStone: 20
-  requiredWood: 10
-  requiredScrapMetal: 5
-  partToGive: 3
+  requiredStone: 0
+  requiredWood: 0
+  requiredScrapMetal: 0
+  partToGive: 0
   amountToGive: 1
