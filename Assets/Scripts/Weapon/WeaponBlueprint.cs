@@ -12,6 +12,8 @@ public class PartRequirement
 [CreateAssetMenu(fileName = "New Weapon Blueprint", menuName = "Crafting/Weapon Blueprint")]
 public class WeaponBlueprint : ScriptableObject
 {
+    [Tooltip("Bu tarifin üreteceği silaha ait tüm oyun içi verileri (hasar, hız vb.) içeren WeaponData dosyası.")]
+    public WeaponData weaponData;
     public string weaponName;
     [TextArea] public string description; // Silah açıklaması için
     public Sprite weaponIcon;
@@ -25,4 +27,7 @@ public class WeaponBlueprint : ScriptableObject
 
     [Header("Part Requirements")]
     public List<PartRequirement> requiredParts;
+    
+
+    
 }

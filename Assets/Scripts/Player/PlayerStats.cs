@@ -122,16 +122,16 @@ public class PlayerStats : MonoBehaviour
 
 
     public void CollectWeaponPart(WeaponPartType part, int amountToCollect = 1)
-{
-    if (!weaponParts.ContainsKey(part))
-        weaponParts[part] = 0;
+    {
+        if (!weaponParts.ContainsKey(part))
+            weaponParts[part] = 0;
 
-    // Artık sabit olarak 1 değil, gelen 'amountToCollect' değeri kadar ekliyor.
-    weaponParts[part] += amountToCollect; 
-    Debug.Log($"🧩 {amountToCollect} adet {part} parçası toplandı. Şu an: {weaponParts[part]}");
+        // Artık sabit olarak 1 değil, gelen 'amountToCollect' değeri kadar ekliyor.
+        weaponParts[part] += amountToCollect;
+        Debug.Log($"🧩 {amountToCollect} adet {part} parçası toplandı. Şu an: {weaponParts[part]}");
 
-    WeaponPartsUI.Instance?.UpdatePartText(part, weaponParts[part]);
-}
+        WeaponPartsUI.Instance?.UpdatePartText(part, weaponParts[part]);
+    }
     public int GetWeaponPartCount(WeaponPartType part)
     {
         return weaponParts.ContainsKey(part) ? weaponParts[part] : 0;
@@ -185,9 +185,9 @@ public class PlayerStats : MonoBehaviour
             }
         }
     }
+    
 
-
-    public void EatCookedMeat()
+        public void EatCookedMeat()
     {
         if (RemoveResource("CookedMeat", 1))
         {

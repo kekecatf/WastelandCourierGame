@@ -12,7 +12,8 @@ GameObject:
   - component: {fileID: 5146117353057106884}
   - component: {fileID: 6921577911449915916}
   - component: {fileID: 7735523158610280009}
-  m_Layer: 0
+  - component: {fileID: 4682034194401431673}
+  m_Layer: 7
   m_Name: Stone
   m_TagString: Resource
   m_Icon: {fileID: 0}
@@ -106,7 +107,7 @@ MonoBehaviour:
   hitsRequired: 3
   hitCooldown: 1
   normalSprite: {fileID: -7438656224352762282, guid: 0ee7e75d2c4a51e41b52c1c9776b60ac, type: 3}
-  highlightedSprite: {fileID: -803223824015377030, guid: beef96344212add45aac1d234077eaca, type: 3}
+  highlightedSprite: {fileID: -803223824015377030, guid: ac4e2c43319b1484ca1c64336e6544fe, type: 3}
 --- !u!61 &7735523158610280009
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -153,3 +154,16 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 5.46, y: 4.17}
   m_EdgeRadius: 0
+--- !u!114 &4682034194401431673
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6150571164243365950}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8876f339876d1a42be02a65a0530f16, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yOffset: 0

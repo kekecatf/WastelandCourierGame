@@ -15,8 +15,7 @@ MonoBehaviour:
   weaponName: Meele Sword
   isAutomatic: 0
   fireRate: 0.5
-  damage: 1
+  reloadTime: 1.5
+  damage: 10
   clipSize: 0
   maxAmmoCapacity: 0
-  reloadTime: 1.5
-  attackRange: 1.5

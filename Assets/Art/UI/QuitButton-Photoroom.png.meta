@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      QuitButton-Photoroom_0: 6646170130352976476
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

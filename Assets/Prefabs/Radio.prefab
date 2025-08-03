@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 4292018990027887392}
   - component: {fileID: 7870225349860778663}
   - component: {fileID: 5878599564627377385}
+  - component: {fileID: 3355513646300814165}
   m_Layer: 0
   m_Name: Radio
   m_TagString: Untagged
@@ -47,7 +48,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 85b669e7a5b59dd49980ddc2c12862f2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  notePanel: {fileID: 7819733555780054894}
+  notePanel: {fileID: 0}
   noteTextUI: {fileID: 0}
   audioSource: {fileID: 0}
 --- !u!114 &4292018990027887392
@@ -165,3 +166,20 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 7.6273875, y: 7.290237}
   m_EdgeRadius: 0
+--- !u!114 &3355513646300814165
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7819733555780054894}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8876f339876d1a42be02a65a0530f16, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  baseSortingOrder: 10
+  sortingMultiplier: -10
+  yOffset: 0
+  isPlayer: 0
+  minSortingOrder: -5

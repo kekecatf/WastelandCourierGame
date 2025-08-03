@@ -15,12 +15,12 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Bullet
   - Water
   - UI
-  - 
-  - 
-  - 
+  - Enemy
+  - Resource
+  - Build
   - 
   - 
   - 
@@ -49,7 +49,7 @@ TagManager:
     uniqueID: 0
     locked: 0
   - name: Shadows
-    uniqueID: 3802411421
+    uniqueID: 2706341657
     locked: 0
   m_RenderingLayers:
   - Default

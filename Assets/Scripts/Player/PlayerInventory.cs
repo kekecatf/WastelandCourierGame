@@ -1,20 +1,20 @@
 using UnityEngine;
 using System.Collections.Generic;
-using TMPro; // UI iï¿½in
+using TMPro; // UI için
 
 public class PlayerInventory : MonoBehaviour
 {
     public static PlayerInventory Instance { get; private set; }
 
     [Header("Crafting")]
-    public List<WeaponBlueprint> availableBlueprints; // Oyunda mevcut tï¿½m tarifler
+    public List<WeaponBlueprint> availableBlueprints; // Oyunda mevcut tüm tarifler
 
     [Header("UI References")]
-    public GameObject inventoryPanel; // Envanter ve Craft'ï¿½n ana paneli
-    public Transform partsContainer; // Parï¿½alarï¿½n gï¿½sterileceï¿½i UI container
-    public GameObject inventoryPartPrefab; // Bir parï¿½ayï¿½ temsil eden UI prefab'ï¿½
+    public GameObject inventoryPanel; // Envanter ve Craft'ýn ana paneli
+    public Transform partsContainer; // Parçalarýn gösterileceði UI container
+    public GameObject inventoryPartPrefab; // Bir parçayý temsil eden UI prefab'ý
 
-    // Mevcut parï¿½alarï¿½ ve sayï¿½larï¿½nï¿½ tutan sï¿½zlï¿½k (Dictionary)
+    // Mevcut parçalarý ve sayýlarýný tutan sözlük (Dictionary)
     private Dictionary<WeaponPartType, int> collectedParts = new Dictionary<WeaponPartType, int>();
 
     void Awake()
@@ -25,9 +25,9 @@ public class PlayerInventory : MonoBehaviour
 
     void Start()
     {
-        // Baï¿½langï¿½ï¿½ta paneli gizle
+        // Baþlangýçta paneli gizle
         inventoryPanel.SetActive(false);
-        // Tï¿½m part enumlarï¿½nï¿½ envantere 0 adet olarak ekle
+        // Tüm part enumlarýný envantere 0 adet olarak ekle
         foreach (WeaponPartType partType in System.Enum.GetValues(typeof(WeaponPartType)))
         {
             if (!collectedParts.ContainsKey(partType))
@@ -39,7 +39,7 @@ public class PlayerInventory : MonoBehaviour
 
     void Update()
     {
-        // Envanteri aï¿½/kapat (ï¿½rneï¿½in 'I' tuï¿½u ile)
+        // Envanteri aç/kapat (örneðin 'I' tuþu ile)
         if (Input.GetKeyDown(KeyCode.I))
         {
             inventoryPanel.SetActive(!inventoryPanel.activeSelf);
@@ -62,60 +62,60 @@ public class PlayerInventory : MonoBehaviour
         }
 
         Debug.Log($"{amount} adet {partType} eklendi. Toplam: {collectedParts[partType]}");
-        UpdateInventoryUI(); // UI'ï¿½ anï¿½nda gï¿½ncelle
+        UpdateInventoryUI(); // UI'ý anýnda güncelle
     }
 
-    // Bu fonksiyon, envanter panelindeki gï¿½rselleri gï¿½nceller.
+    // Bu fonksiyon, envanter panelindeki görselleri günceller.
     public void UpdateInventoryUI()
     {
         if (!inventoryPanel.activeSelf) return;
 
-        // ï¿½nce eski UI objelerini temizle
+        // Önce eski UI objelerini temizle
         foreach (Transform child in partsContainer)
         {
             Destroy(child.gameObject);
         }
 
-        // Sonra mevcut parï¿½alar iï¿½in yeni UI objeleri oluï¿½tur
+        // Sonra mevcut parçalar için yeni UI objeleri oluþtur
         foreach (var part in collectedParts)
         {
-            if (part.Value > 0) // Sadece 0'dan fazla olanlarï¿½ gï¿½ster
+            if (part.Value > 0) // Sadece 0'dan fazla olanlarý göster
             {
                 GameObject partUI = Instantiate(inventoryPartPrefab, partsContainer);
-                // Not: partUI objesinin ï¿½zerinde part adï¿½nï¿½ ve sayï¿½sï¿½nï¿½ yazan bir script olmalï¿½.
-                // ï¿½rneï¿½in: partUI.GetComponent<InventorySlotUI>().Setup(part.Key, part.Value);
-                // ï¿½imdilik basitï¿½e ismini yazdï¿½ralï¿½m
+                // Not: partUI objesinin üzerinde part adýný ve sayýsýný yazan bir script olmalý.
+                // Örneðin: partUI.GetComponent<InventorySlotUI>().Setup(part.Key, part.Value);
+                // Þimdilik basitçe ismini yazdýralým
                 partUI.GetComponentInChildren<TextMeshProUGUI>().text = $"{part.Key}: {part.Value}";
             }
         }
     }
 
-    // Craft iï¿½lemi
+    // Craft iþlemi
     public void TryCraftWeapon(WeaponBlueprint blueprint)
     {
-        // Gerekli tï¿½m parï¿½alara sahip miyiz?
+        // Gerekli tüm parçalara sahip miyiz?
         foreach (var requirement in blueprint.requiredParts)
         {
             if (!collectedParts.ContainsKey(requirement.partType) || collectedParts[requirement.partType] < requirement.amount)
             {
-                Debug.Log($"Craft BAï¿½ARISIZ: Yeterli {requirement.partType} yok.");
-                return; // Bir parï¿½a bile eksikse, iï¿½lemi durdur.
+                Debug.Log($"Craft BAÞARISIZ: Yeterli {requirement.partType} yok.");
+                return; // Bir parça bile eksikse, iþlemi durdur.
             }
         }
 
-        // Tï¿½m parï¿½alar varsa, craft iï¿½lemi baï¿½arï¿½lï¿½!
-        Debug.Log($"Craft BAï¿½ARILI: {blueprint.weaponName} ï¿½retildi!");
+        // Tüm parçalar varsa, craft iþlemi baþarýlý!
+        Debug.Log($"Craft BAÞARILI: {blueprint.weaponName} üretildi!");
 
-        // 1. Parï¿½alarï¿½ envanterden dï¿½ï¿½
+        // 1. Parçalarý envanterden düþ
         foreach (var requirement in blueprint.requiredParts)
         {
             collectedParts[requirement.partType] -= requirement.amount;
         }
 
-        // 2. Silahï¿½ WeaponSlotManager'da aï¿½
+        // 2. Silahý WeaponSlotManager'da aç
         WeaponSlotManager.Instance.UnlockWeapon(blueprint.weaponSlotIndexToUnlock);
 
-        // 3. UI'ï¿½ gï¿½ncelle
+        // 3. UI'ý güncelle
         UpdateInventoryUI();
     }
 }

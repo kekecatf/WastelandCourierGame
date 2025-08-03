@@ -209,7 +209,11 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      "Yaral\u0131 Asfalt Par\xE7ac\u0131\u011F\u0131-Photoroom_0": -7203576675424829229
+      "Yaral\u0131 Asfalt Par\xE7ac\u0131\u011F\u0131-Photoroom_1": -5287848214042315123
+      "Yaral\u0131 Asfalt Par\xE7ac\u0131\u011F\u0131-Photoroom_2": -3101039466963713851
+      "Yaral\u0131 Asfalt Par\xE7ac\u0131\u011F\u0131-Photoroom_3": 8622109362287144040
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

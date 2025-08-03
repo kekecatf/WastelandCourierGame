@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8552359031877959387}
   - component: {fileID: 82099305250813180}
   - component: {fileID: 7145007792658306723}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: Background
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -86,7 +86,7 @@ GameObject:
   - component: {fileID: 6308025791061199843}
   - component: {fileID: 2146601416036506894}
   - component: {fileID: 6799705867954199502}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: Fill
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -162,7 +162,8 @@ GameObject:
   - component: {fileID: 2728586274504377749}
   - component: {fileID: 295582064850213262}
   - component: {fileID: 2584694091972607958}
-  m_Layer: 0
+  - component: {fileID: 48721341129554578}
+  m_Layer: 8
   m_Name: BuildSpot
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -300,6 +301,19 @@ MonoBehaviour:
   buildTime: 2
   progressBar: {fileID: 7890812608410297602}
   progressCanvas: {fileID: 4697144083639564778}
+--- !u!114 &48721341129554578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 981657813928387134}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b8876f339876d1a42be02a65a0530f16, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  yOffset: 0
 --- !u!1 &4697144083639564778
 GameObject:
   m_ObjectHideFlags: 0
@@ -312,7 +326,7 @@ GameObject:
   - component: {fileID: 3847725933420644278}
   - component: {fileID: 5051424862482880836}
   - component: {fileID: 203465936284244459}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: BuildProgressCanvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -411,7 +425,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5946678729930466033}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: Fill Area
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -448,7 +462,7 @@ GameObject:
   m_Component:
   - component: {fileID: 239301642737084435}
   - component: {fileID: 7890812608410297602}
-  m_Layer: 5
+  m_Layer: 8
   m_Name: 'BuildProgressBar '
   m_TagString: Untagged
   m_Icon: {fileID: 0}

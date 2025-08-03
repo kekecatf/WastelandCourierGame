@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      MermiGorsel-Photoroom_0: -203186973052423086
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

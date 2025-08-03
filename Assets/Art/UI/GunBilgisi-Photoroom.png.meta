@@ -134,7 +134,8 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      GunBilgisi-Photoroom_0: 8567244277164438961
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -6,6 +6,7 @@ using UnityEngine;
 public class WeaponData : ScriptableObject
 {
     public string weaponName;
+    public Sprite weaponIcon;
     public bool isAutomatic; // Melee için de kullanılabilir (basılı tutunca sürekli sallar)
     public float fireRate = 2f;    // Saldırı hızı (saniyedeki vuruş sayısı)
     public int damage;

@@ -1,3 +1,5 @@
+// PlayerMovement.cs (YÖNÜ FARE İLE KONTROL EDEN, TAM VE HATASIZ HALİ)
+
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -6,17 +8,18 @@ public class PlayerMovement : MonoBehaviour
     [Header("Movement")]
     public float moveSpeed = 5f;
 
+    // --- Bileşen Referansları ---
     private Rigidbody2D rb;
     private PlayerStats stats;
     private Animator animator;
+    private Camera mainCamera;
+
+    // --- Input System ---
     private PlayerControls controls;
     private Vector2 moveInput;
-
-    private Vector2 lastDirection = Vector2.down; 
     
+    // FacingDirection artık silah sistemi için ve karakteri çevirmek için kullanılacak.
     public static float FacingDirection { get; private set; } = 1f;
-    public static float VerticalMoveDirection { get; private set; } = 0f; 
-    public static Vector2 LastDiscretizedDirection { get; private set; } = Vector2.down;
 
     private void Awake()
     {
@@ -24,6 +27,7 @@ public class PlayerMovement : MonoBehaviour
         stats = GetComponent<PlayerStats>();
         animator = GetComponent<Animator>();
         controls = new PlayerControls();
+        mainCamera = Camera.main; // Kamerayı bir kere al, daha performanslı.
     }
 
     private void OnEnable()
@@ -61,50 +65,63 @@ public class PlayerMovement : MonoBehaviour
         UpdateAnimationAndDirection();
     }
 
-    private void UpdateAnimationAndDirection()
+  private void UpdateAnimationAndDirection()
+{
+    if (animator == null || mainCamera == null) return;
+
+    // 1. Fare pozisyonunu ve nişan alma yönünü hesapla.
+    Vector2 mouseScreenPosition = Mouse.current.position.ReadValue();
+    Vector3 mouseWorldPosition = mainCamera.ScreenToWorldPoint(mouseScreenPosition);
+    Vector2 aimDirection = (mouseWorldPosition - transform.position).normalized;
+    
+    // --- YENİ MANTIK: HASSAS YÖNÜ, KESKİN 8 YÖNE YUVARLAMA ---
+    
+    // 2. Fareden gelen hassas yönü, 8 ana yönden birine çevir.
+    Vector2 discretizedAimDirection = DiscretizeDirection(aimDirection);
+    
+    // ---------------------------------------------
+
+    // 3. Animator'e bu yeni, "keskin" yönü gönder.
+    animator.SetFloat("moveX", discretizedAimDirection.x);
+    animator.SetFloat("moveY", discretizedAimDirection.y);
+
+    // 4. Genel hareket durumunu bildir.
+    bool isMoving = moveInput.sqrMagnitude > 0.01f;
+    animator.SetBool("isMoving", isMoving);
+
+    // 5. Sprite'ı çevirme (flip) mantığı.
+    // Artık 'aimDirection' değil, yuvarlanmış 'discretizedAimDirection' kullanıyoruz.
+    if (Mathf.Abs(discretizedAimDirection.x) > 0.01f)
     {
-        if (animator == null) return;
-
-        bool isMoving = moveInput.sqrMagnitude > 0.01f;
-        animator.SetBool("isMoving", isMoving);
-
-        Vector2 directionToAnimate;
-
-        if (isMoving)
-        {
-            directionToAnimate = DiscretizeDirection(moveInput);
-            lastDirection = directionToAnimate;
-        }
-        else
-        {
-            directionToAnimate = lastDirection;
-        }
-        
-        LastDiscretizedDirection = directionToAnimate;
-        
-        animator.SetFloat("moveX", directionToAnimate.x);
-        animator.SetFloat("moveY", directionToAnimate.y);
-        
-        if (Mathf.Abs(directionToAnimate.x) > 0.1f)
-        {
-            FacingDirection = Mathf.Sign(directionToAnimate.x);
-        }
-        
-        VerticalMoveDirection = directionToAnimate.y;
+        FacingDirection = Mathf.Sign(discretizedAimDirection.x);
         transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * FacingDirection, transform.localScale.y, transform.localScale.z);
     }
-    
-    private Vector2 DiscretizeDirection(Vector2 vector)
+}
+
+// YENİDEN EKLENEN YARDIMCI FONKSİYON: Gelen bir vektörü 8 ana yönden birine yuvarlar.
+private Vector2 DiscretizeDirection(Vector2 vector)
+{
+    // Açıya göre 8 yönden birini seçme daha güvenilir çalışır.
+    float angle = Mathf.Atan2(vector.y, vector.x) * Mathf.Rad2Deg;
+
+    // Açıyı 0-360 derece aralığına getir.
+    if (angle < 0) angle += 360;
+
+    // Her bir 45 derecelik dilim, bir ana yöne karşılık gelir.
+    int slice = Mathf.RoundToInt(angle / 45f);
+
+    switch (slice)
     {
-        Vector2 normalizedVector = vector.normalized;
-        float x = Mathf.Round(normalizedVector.x);
-        float y = Mathf.Round(normalizedVector.y);
-        Vector2 result = new Vector2(x, y);
-        
-        if (result.sqrMagnitude > 0.1f)
-        {
-            return result.normalized;
-        }
-        return normalizedVector;
+        case 0: return Vector2.right;       // Sağ
+        case 1: return new Vector2(1, 1).normalized;  // Sağ-Yukarı
+        case 2: return Vector2.up;          // Yukarı
+        case 3: return new Vector2(-1, 1).normalized; // Sol-Yukarı
+        case 4: return Vector2.left;        // Sol
+        case 5: return new Vector2(-1, -1).normalized;// Sol-Aşağı
+        case 6: return Vector2.down;        // Aşağı
+        case 7: return new Vector2(1, -1).normalized; // Sağ-Aşağı
+        case 8: return Vector2.right;       // 360 derece = 0 derece
+        default: return Vector2.right;
     }
+}
 }

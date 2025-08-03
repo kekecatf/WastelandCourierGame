@@ -1,4 +1,4 @@
-﻿// WeaponSlotManager.cs (YENİ, SAĞLAM VE TEMİZ HALİ)
+// WeaponSlotManager.cs (YENİ, SAĞLAM VE TEMİZ HALİ)
 
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -27,7 +27,7 @@ public class WeaponSlotManager : MonoBehaviour
     // --- SİSTEM DEĞİŞKENLERİ ---
     public static WeaponSlotManager Instance { get; private set; }
     private PlayerWeapon activeWeapon;
-    private int activeSlotIndex = -1; // -1, başlangıçta hiçbir silahın aktif olmadığını belirtir.
+    public int activeSlotIndex = -1; // -1, başlangıçta hiçbir silahın aktif olmadığını belirtir.
 
     private bool emptyClipSoundPlayedThisPress = false;
 
@@ -37,51 +37,35 @@ public class WeaponSlotManager : MonoBehaviour
 
     // WeaponSlotManager.cs içindeki Awake fonksiyonu
 
+// WeaponSlotManager.cs İÇİNE BU FONKSİYONU EKLEYİN
+
+public WeaponBlueprint[] GetEquippedBlueprints()
+{
+    return equippedBlueprints;
+}
     void Awake()
     {
-        // Singleton Pattern
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
+        if (Instance == null) Instance = this; else Destroy(gameObject);
 
-        // --- YENİ MANTIK ---
-        // Kilit dizisini oluştur.
-        unlockedWeapons = new bool[weaponSlots.Length];
-
+        // 1. Kuşanılmış blueprint dizisini oluştur ve başlangıç silahlarını doldur.
         equippedBlueprints = new WeaponBlueprint[weaponSlots.Length];
-
         foreach (var blueprint in startingEquippedWeapons)
         {
             if (blueprint != null)
             {
-                EquipBlueprint(blueprint);
+                int slotIndex = blueprint.weaponSlotIndexToUnlock;
+                if (slotIndex >= 0 && slotIndex < equippedBlueprints.Length)
+                {
+                    equippedBlueprints[slotIndex] = blueprint;
+                    Debug.Log($"Başlangıçta Kuşanıldı: {blueprint.weaponName} -> Slot {slotIndex}");
+                }
             }
         }
 
-        // Başlangıçta, weaponSlots dizisine atanmış olan TÜM silahların kilidini AÇIK yap.
-        // Bu, oyuna eklediğiniz ilk 3 silahın direkt kullanılabilir olmasını sağlar.
-        for (int i = 0; i < unlockedWeapons.Length; i++)
-        {
-            // Eğer o slotta bir silah objesi varsa, kilidini açık olarak başlat.
-            if (weaponSlots[i] != null)
-            {
-                unlockedWeapons[i] = true;
-                Debug.Log($"Başlangıç silahı '{weaponSlots[i].name}' (Slot {i}) kilidi açık.");
-            }
-            else
-            {
-                // Eğer slot boş bırakıldıysa, gelecekteki bir silah için kilitli başlasın.
-                unlockedWeapons[i] = false;
-            }
-        }
-
+        // 2. Mermi sistemini başlat.
         InitializeAmmo();
+        
+        
     }
 
     public WeaponBlueprint GetBlueprintForSlot(int slotIndex)
@@ -157,18 +141,17 @@ public class WeaponSlotManager : MonoBehaviour
         }
 
         // Başlangıçta 1. slottaki (Handgun) silahı seç.
-        SwitchToSlot(1);
+        SwitchToSlot(0);
     }
 
     void Update()
     {
-        // Tuş girdilerini dinle
-        HandleWeaponSwitchingInput();
+       HandleWeaponSwitchingInput();
 
-        // Aktif bir silah yoksa, sonraki işlemleri yapma.
         if (activeWeapon == null) return;
-
-        if (Mouse.current.leftButton.wasReleasedThisFrame)
+        
+        // Fare bırakıldığında "boş şarjör sesi çalındı" bayrağını sıfırla.
+        if (Mouse.current != null && Mouse.current.leftButton.wasReleasedThisFrame)
         {
             emptyClipSoundPlayedThisPress = false;
         }
@@ -180,99 +163,87 @@ public class WeaponSlotManager : MonoBehaviour
 
     private void InitializeAmmo()
     {
-        // Dizileri silah sayısı kadar oluştur.
         ammoInClips = new int[weaponSlots.Length];
         totalReserveAmmo = new int[weaponSlots.Length];
 
         for (int i = 0; i < weaponSlots.Length; i++)
         {
-            if (weaponSlots[i] == null)
+            // Mermi ve cephaneyi, kuşanılmış blueprint'e göre doldur.
+            if (equippedBlueprints[i] != null)
             {
-                Debug.LogError($"Weapon Slot {i} boş! Lütfen Inspector'dan atama yapın.");
-                continue;
-            }
-
-            // ÖNEMLİ: Prefab deaktif olsa bile GetComponent çalışır.
-            PlayerWeapon weapon = weaponSlots[i].GetComponent<PlayerWeapon>();
-            if (weapon == null || weapon.weaponData == null)
-            {
-                Debug.LogError($"Weapon Slot {i} ({weaponSlots[i].name}) üzerinde PlayerWeapon script'i veya WeaponData bulunamadı!");
-                continue;
-            }
-
-            // Kılıç gibi mermisi olmayan silahları atla
-            if (weapon.weaponData.clipSize > 0)
-            {
-                ammoInClips[i] = weapon.weaponData.clipSize;
-                totalReserveAmmo[i] = weapon.weaponData.maxAmmoCapacity;
-            }
-            else
-            {
-                ammoInClips[i] = 0;
-                totalReserveAmmo[i] = 0;
+                WeaponData data = equippedBlueprints[i].weaponData;
+                if (data.clipSize > 0)
+                {
+                    ammoInClips[i] = data.clipSize;
+                    totalReserveAmmo[i] = data.maxAmmoCapacity;
+                }
             }
         }
         Debug.Log("Mermi sistemi başlangıç değerleri yüklendi.");
     }
 
     private void HandleWeaponSwitchingInput()
-{
-    if (Keyboard.current == null) return;
+    {
+        if (Keyboard.current == null) return;
 
-    if (Keyboard.current.digit1Key.wasPressedThisFrame) SwitchToSlot(0);
-    if (Keyboard.current.digit2Key.wasPressedThisFrame) SwitchToSlot(1);
-    if (Keyboard.current.digit3Key.wasPressedThisFrame) SwitchToSlot(2);
+        if (Keyboard.current.digit1Key.wasPressedThisFrame) SwitchToSlot(0);
+        if (Keyboard.current.digit2Key.wasPressedThisFrame) SwitchToSlot(1);
+        if (Keyboard.current.digit3Key.wasPressedThisFrame) SwitchToSlot(2);
+        if (Keyboard.current.digit4Key.wasPressedThisFrame) SwitchToSlot(3);
+        if (Keyboard.current.digit5Key.wasPressedThisFrame) SwitchToSlot(4);
+        if (Keyboard.current.digit6Key.wasPressedThisFrame) SwitchToSlot(5);
+        if (Keyboard.current.digit7Key.wasPressedThisFrame) SwitchToSlot(6);
+        if (Keyboard.current.digit8Key.wasPressedThisFrame) SwitchToSlot(7);
+        if (Keyboard.current.digit9Key.wasPressedThisFrame) SwitchToSlot(8);
 }
 
     public void SwitchToSlot(int newIndex)
     {
-        // 1. Gerekli kontroller
-        if (newIndex < 0 || newIndex >= weaponSlots.Length)
-        {
-            Debug.LogError($"Geçersiz silah slotu indexi: {newIndex}");
-            return;
-        }
-        if (newIndex == activeSlotIndex) return; // Zaten o silah seçili.
+        if (newIndex < 0 || newIndex >= weaponSlots.Length || newIndex == activeSlotIndex) return;
         if (weaponSlots[newIndex] == null)
         {
-            Debug.LogError($"Slot {newIndex} için silah atanmamış!");
+            Debug.LogError($"Fiziksel silah slotu {newIndex} boş!");
             return;
         }
 
-        // 2. Mevcut silahı deaktif et ve durumunu kaydet
-        if (activeWeapon != null)
+        // Ana kontrol: Bu slotta kuşanılmış bir silah var mı?
+        if (equippedBlueprints[newIndex] == null)
         {
-            if (activeWeapon.IsReloading())
-            {
-                activeWeapon.StopAllCoroutines();
-            }
-            // Mermili bir silahsı mermisini kaydet
-            if (activeWeapon.weaponData.clipSize > 0)
-            {
-                ammoInClips[activeSlotIndex] = activeWeapon.GetCurrentAmmoInClip();
-            }
+            Debug.Log($"Slot {newIndex} boş, silah değiştirilemez.");
+            return;
+        }
+
+        // Mevcut silahı kapat.
+        if (activeSlotIndex != -1 && weaponSlots[activeSlotIndex] != null)
+        {
             weaponSlots[activeSlotIndex].SetActive(false);
         }
 
-        // 3. Yeni silahı aktif et ve referansları ayarla
+        // Yeni silahı aç ve ayarla.
         activeSlotIndex = newIndex;
         GameObject newWeaponObject = weaponSlots[activeSlotIndex];
         newWeaponObject.SetActive(true);
         activeWeapon = newWeaponObject.GetComponent<PlayerWeapon>();
 
-        if (activeWeapon == null)
+        if (activeWeapon != null)
         {
-            Debug.LogError($"Yeni aktif edilen silah ({newWeaponObject.name}) üzerinde PlayerWeapon script'i yok!");
-            return;
-        }
+            // Fiziksel silahın verilerini, kuşanılmış blueprint'in verileriyle güncelle.
+            activeWeapon.weaponData = equippedBlueprints[activeSlotIndex].weaponData;
+            
+            // Yeni silahın mermi durumunu yükle.
+            if (activeWeapon.weaponData.clipSize > 0)
+            {
+                activeWeapon.SetAmmoInClip(ammoInClips[activeSlotIndex]);
+            }
 
-        // 4. Yeni silahın mermi durumunu yükle
-        if (activeWeapon.weaponData.clipSize > 0)
-        {
-            activeWeapon.SetAmmoInClip(ammoInClips[activeSlotIndex]);
+            Debug.Log($"Başarıyla '{activeWeapon.weaponData.weaponName}' silahına geçildi.");
+            UpdateUI(); // UI'ı anında güncelle.
+            
+            if (WeaponSlotUI.Instance != null)
+            {
+                WeaponSlotUI.Instance.UpdateHighlight(activeSlotIndex);
+            }
         }
-
-        Debug.Log($"Başarıyla '{activeWeapon.weaponData.weaponName}' silahına geçildi.");
     }
 
     // --- Ateş Etme, Şarjör Değiştirme ve UI Fonksiyonları ---
@@ -280,46 +251,25 @@ public class WeaponSlotManager : MonoBehaviour
 
     private void HandleShootingInput()
 {
-    if (Mouse.current == null) return;
+    if (activeWeapon == null || Mouse.current == null) return;
 
-        if (activeWeapon.weaponData.isAutomatic)
+        bool isAutomatic = activeWeapon.weaponData.isAutomatic;
+        bool isShootingPressed = isAutomatic ? Mouse.current.leftButton.isPressed : Mouse.current.leftButton.wasPressedThisFrame;
+
+        if (isShootingPressed)
         {
-            if (Mouse.current.leftButton.isPressed)
-                
-            
             if (activeWeapon.GetCurrentAmmoInClip() > 0)
-                {
-                    // Mermi varsa, bayrağı sıfırla ve ateş et.
-                    emptyClipSoundPlayedThisPress = false;
-                    activeWeapon.Shoot();
-                }
-                else // Mermi yoksa...
-                {
-                    // "Tık" sesi bu basış sırasında daha önce çalınmadıysa...
-                    if (!emptyClipSoundPlayedThisPress)
-                    {
-                        // ...sesi çal ve bayrağı setle.
-                        activeWeapon.PlayEmptyClipSound();
-                        emptyClipSoundPlayedThisPress = true;
-                        
-                        // Otomatik reload'u da sadece bir kez dene.
-                        StartReload();
-                    }
-                }
-    }
-        else
-        {
-            if (Mouse.current.leftButton.wasPressedThisFrame)
-                if (Mouse.current.leftButton.wasPressedThisFrame)
             {
-                if (activeWeapon.GetCurrentAmmoInClip() > 0)
-                {
-                    activeWeapon.Shoot();
-                }
-                else
+                emptyClipSoundPlayedThisPress = false;
+                activeWeapon.Shoot();
+            }
+            else // Mermi yoksa...
+            {
+                if (!emptyClipSoundPlayedThisPress)
                 {
                     activeWeapon.PlayEmptyClipSound();
-                    StartReload();
+                    emptyClipSoundPlayedThisPress = true;
+                    StartReload(); // Otomatik reload'u sadece bir kez dene.
                 }
             }
         }

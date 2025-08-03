@@ -234,7 +234,12 @@ TextureImporter:
     secondaryTextures: []
     spriteCustomMetadata:
       entries: []
-    nameFileIdTable: {}
+    nameFileIdTable:
+      "Pikselli \xC7amur Leki-Photoroom_0": -4460848963667146891
+      "Pikselli \xC7amur Leki-Photoroom_1": -453006650115760542
+      "Pikselli \xC7amur Leki-Photoroom_2": 529043326242497434
+      "Pikselli \xC7amur Leki-Photoroom_3": 6270749830551057732
+      "Pikselli \xC7amur Leki-Photoroom_4": 2906278254322900135
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
