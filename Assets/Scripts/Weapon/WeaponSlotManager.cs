@@ -198,53 +198,64 @@ public WeaponBlueprint[] GetEquippedBlueprints()
 }
 
     public void SwitchToSlot(int newIndex)
+{
+    if (newIndex < 0 || newIndex >= weaponSlots.Length || newIndex == activeSlotIndex) return;
+    if (weaponSlots[newIndex] == null)
     {
-        if (newIndex < 0 || newIndex >= weaponSlots.Length || newIndex == activeSlotIndex) return;
-        if (weaponSlots[newIndex] == null)
+        Debug.LogError($"Fiziksel silah slotu {newIndex} boş!");
+        return;
+    }
+    if (equippedBlueprints[newIndex] == null)
+    {
+        Debug.Log($"Slot {newIndex} boş, silah değiştirilemez.");
+        return;
+    }
+
+    // --- ESKİ SİLAHIN BİLGİLERİNİ KAYDETME (KRİTİK DEĞİŞİKLİK BURADA) ---
+    // Mevcut bir silah aktifse...
+    if (activeSlotIndex != -1 && activeWeapon != null)
+    {
+        // ...ve bu silahın şarjörü varsa...
+        if (activeWeapon.weaponData.clipSize > 0)
         {
-            Debug.LogError($"Fiziksel silah slotu {newIndex} boş!");
-            return;
+            // ...o anki mermi sayısını merkezi diziye kaydet!
+            ammoInClips[activeSlotIndex] = activeWeapon.GetCurrentAmmoInClip();
+            Debug.Log($"{activeWeapon.weaponData.weaponName} (Slot {activeSlotIndex}) mermisi kaydedildi: {ammoInClips[activeSlotIndex]}");
+        }
+        
+        // Reload işlemini iptal et ve objeyi kapat.
+        if (activeWeapon.IsReloading())
+        {
+            activeWeapon.StopAllCoroutines();
+        }
+        weaponSlots[activeSlotIndex].SetActive(false);
+    }
+    
+    // --- YENİ SİLAHI AÇMA VE BİLGİLERİNİ YÜKLEME ---
+    activeSlotIndex = newIndex;
+    GameObject newWeaponObject = weaponSlots[activeSlotIndex];
+    newWeaponObject.SetActive(true);
+    activeWeapon = newWeaponObject.GetComponent<PlayerWeapon>();
+
+    if (activeWeapon != null)
+    {
+        activeWeapon.weaponData = equippedBlueprints[activeSlotIndex].weaponData;
+        
+        // Yeni silahın kaydedilmiş mermi durumunu merkezi diziden yükle.
+        if (activeWeapon.weaponData.clipSize > 0)
+        {
+            activeWeapon.SetAmmoInClip(ammoInClips[activeSlotIndex]);
         }
 
-        // Ana kontrol: Bu slotta kuşanılmış bir silah var mı?
-        if (equippedBlueprints[newIndex] == null)
+        Debug.Log($"Başarıyla '{activeWeapon.weaponData.weaponName}' silahına geçildi.");
+        UpdateUI();
+        
+        if (WeaponSlotUI.Instance != null)
         {
-            Debug.Log($"Slot {newIndex} boş, silah değiştirilemez.");
-            return;
-        }
-
-        // Mevcut silahı kapat.
-        if (activeSlotIndex != -1 && weaponSlots[activeSlotIndex] != null)
-        {
-            weaponSlots[activeSlotIndex].SetActive(false);
-        }
-
-        // Yeni silahı aç ve ayarla.
-        activeSlotIndex = newIndex;
-        GameObject newWeaponObject = weaponSlots[activeSlotIndex];
-        newWeaponObject.SetActive(true);
-        activeWeapon = newWeaponObject.GetComponent<PlayerWeapon>();
-
-        if (activeWeapon != null)
-        {
-            // Fiziksel silahın verilerini, kuşanılmış blueprint'in verileriyle güncelle.
-            activeWeapon.weaponData = equippedBlueprints[activeSlotIndex].weaponData;
-            
-            // Yeni silahın mermi durumunu yükle.
-            if (activeWeapon.weaponData.clipSize > 0)
-            {
-                activeWeapon.SetAmmoInClip(ammoInClips[activeSlotIndex]);
-            }
-
-            Debug.Log($"Başarıyla '{activeWeapon.weaponData.weaponName}' silahına geçildi.");
-            UpdateUI(); // UI'ı anında güncelle.
-            
-            if (WeaponSlotUI.Instance != null)
-            {
-                WeaponSlotUI.Instance.UpdateHighlight(activeSlotIndex);
-            }
+            WeaponSlotUI.Instance.UpdateHighlight(activeSlotIndex);
         }
     }
+}
 
     // --- Ateş Etme, Şarjör Değiştirme ve UI Fonksiyonları ---
     // Bu kısımlar önceki versiyonlarla büyük ölçüde aynı kalabilir.
@@ -352,6 +363,6 @@ public WeaponBlueprint[] GetEquippedBlueprints()
     else
     {
         reloadPromptText.gameObject.SetActive(false);
-    }
+    }
 }
 }

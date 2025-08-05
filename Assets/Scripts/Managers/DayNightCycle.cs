@@ -37,6 +37,7 @@ public class DayNightCycle : MonoBehaviour
                 spawner.RegenerateResources(regenerationRatio);
                 SetAnimalsNightState(false);
                 lightController?.SetDay(true);
+                MusicManager.Instance?.SetDay(true);
                 timer = dayDuration;
 
 
@@ -47,6 +48,7 @@ public class DayNightCycle : MonoBehaviour
                 SpawnEnemies();
                 SetAnimalsNightState(true);
                 lightController?.SetDay(false);
+                MusicManager.Instance?.SetDay(false);
                 timer = nightDuration;
 
 

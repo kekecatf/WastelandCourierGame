@@ -52,27 +52,34 @@ public class PlayerWeapon : MonoBehaviour
     }
 
     private void RangedAttack()
+{
+    if (currentAmmoInClip <= 0)
     {
-        if (currentAmmoInClip <= 0)
-        {
-            // Bu fonksiyon artık WeaponSlotManager'da, mermi yoksa oradan çağrılacak.
-            // PlayEmptyClipSound();
-            return;
-        }
-
-        nextTimeToFire = Time.time + 1f / weaponData.fireRate;
-        currentAmmoInClip--;
-
-        if (shootSound != null) audioSource.PlayOneShot(shootSound);
-        if (animator != null) animator.SetTrigger("Shoot");
-
-        if (bulletPrefab != null && firePoint != null)
-        {
-            Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
-        }
-        
-        WeaponSlotManager.Instance.UpdateAmmoText();
+        // Mermi yoksa boş ses çal
+        return;
     }
+
+    nextTimeToFire = Time.time + 1f / weaponData.fireRate;
+    currentAmmoInClip--;
+
+    if (shootSound != null) audioSource.PlayOneShot(shootSound);
+    if (animator != null) animator.SetTrigger("Shoot");
+
+    if (bulletPrefab != null && firePoint != null)
+    {
+        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        
+        // WeaponBullet scriptindeki damage değerini burada atıyoruz
+        WeaponBullet bulletScript = bullet.GetComponent<WeaponBullet>();
+        if (bulletScript != null)
+        {
+            bulletScript.damage = weaponData.damage;
+        }
+    }
+
+    WeaponSlotManager.Instance.UpdateAmmoText();
+}
+
 
     private void MeleeAttack()
     {
@@ -115,5 +122,5 @@ public class PlayerWeapon : MonoBehaviour
     // Yardımcı Fonksiyonlar
     public void SetAmmoInClip(int amount) => currentAmmoInClip = amount;
     public int GetCurrentAmmoInClip() => currentAmmoInClip;
-    public bool IsReloading() => isReloading;
+    public bool IsReloading() => isReloading;
 }

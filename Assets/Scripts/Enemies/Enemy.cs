@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public class Enemy : MonoBehaviour
 {
@@ -15,6 +16,18 @@ public class Enemy : MonoBehaviour
     public float moveSpeed = 2f;
     public int damageToCaravan = 1;
     private Animator animator;
+    private AudioSource audioSource; // YENİ
+
+    [Header("Audio")]
+    [Tooltip("Düşman doğduğunda veya belirli aralıklarla çalınacak sesler.")]
+    public List<AudioClip> ambientSounds;
+    [Tooltip("Düşman hasar aldığında çalınacak sesler.")]
+    public List<AudioClip> hurtSounds;
+    [Tooltip("Düşman öldüğünde çalınacak ses.")]
+    public AudioClip deathSound; // Genellikle tek bir ölüm sesi olur.
+
+    [Tooltip("Rastgele ortam seslerinin çalınma aralığı (min ve max saniye).")]
+    public Vector2 ambientSoundInterval = new Vector2(5f, 15f);
 
 
 
@@ -64,6 +77,10 @@ public class Enemy : MonoBehaviour
         }
 
         animator = GetComponent<Animator>();
+        audioSource = GetComponent<AudioSource>();
+
+        StartCoroutine(PlayAmbientSounds());
+
     }
 
 
@@ -84,6 +101,7 @@ public class Enemy : MonoBehaviour
     {
         currentHealth -= amount;
 
+        PlayRandomSound(hurtSounds);
         // Debug için
         Debug.Log($"Enemy took {amount} damage. Current health: {currentHealth}/{maxHealth}");
 
@@ -125,16 +143,7 @@ public class Enemy : MonoBehaviour
     {
         if (collision.CompareTag("Caravan"))
         {
-            animator.Play("Hitting");
-            CaravanHealth caravan = collision.GetComponent<CaravanHealth>();
-            if (caravan != null)
-                caravan.TakeDamage(1);
-
-            if (hpBarInstance != null)
-                Destroy(hpBarInstance);
-
-            Destroy(gameObject);
-            animator.Play("Die");
+            Die();
         }
         if (enemyType == EnemyType.Exploder)
         {
@@ -154,4 +163,56 @@ public class Enemy : MonoBehaviour
         }
 
     }
+    private void Die()
+    {
+        Debug.Log("Düşman öldü!");
+        // Önce bileşenleri devre dışı bırak ki tekrar hasar almasın veya hareket etmesin.
+        GetComponent<Collider2D>().enabled = false;
+        this.enabled = false; // Bu script'i devre dışı bırakır.
+
+        // YENİ: Ölüm sesini çal.
+        if (deathSound != null)
+        {
+            // Ölüm sesi, obje yok olmadan önce duyulabilsin diye yeni bir obje üzerinde çalınır.
+            AudioSource.PlayClipAtPoint(deathSound, transform.position);
+        }
+
+        animator.Play("Die"); // Ölüm animasyonunu oynat
+
+        // Loot düşürme
+        if (goldPrefab != null && Random.value < 0.25f) Instantiate(goldPrefab, transform.position, Quaternion.identity);
+        if (blueprintPrefabs.Length > 0 && Random.value < 0.75f)
+        {
+            int index = Random.Range(0, blueprintPrefabs.Length);
+            Instantiate(blueprintPrefabs[index], transform.position, Quaternion.identity);
+        }
+        
+        // Obje ve can barını, animasyon bittikten sonra yok et (örneğin 2 saniye sonra).
+        if (hpBarInstance != null) Destroy(hpBarInstance, 2f);
+        Destroy(gameObject, 2f);
+    }
+    
+    // YENİ: Rastgele ortam sesi çalan Coroutine
+    private System.Collections.IEnumerator PlayAmbientSounds()
+    {
+        while (true) // Sonsuz döngü
+        {
+            // Rastgele bir süre bekle
+            yield return new WaitForSeconds(Random.Range(ambientSoundInterval.x, ambientSoundInterval.y));
+            
+            // Rastgele bir ortam sesi çal
+            PlayRandomSound(ambientSounds);
+        }
+    }
+
+    // YENİ: Verilen listeden rastgele bir ses çalan yardımcı fonksiyon
+    private void PlayRandomSound(List<AudioClip> clips)
+    {
+        if (clips != null && clips.Count > 0 && audioSource != null)
+        {
+            int index = Random.Range(0, clips.Count);
+            audioSource.PlayOneShot(clips[index]);
+        }
+    }
+
 }
