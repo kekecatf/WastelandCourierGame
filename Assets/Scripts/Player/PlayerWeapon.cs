@@ -39,6 +39,8 @@ public class PlayerWeapon : MonoBehaviour
 
     public void Shoot()
     {
+        if (PauseMenu.IsPaused || isReloading || Time.time < nextTimeToFire)
+        return;
         if (isReloading || Time.time < nextTimeToFire) return;
 
         if (weaponData.clipSize <= 0) // Melee check

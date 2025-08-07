@@ -30,6 +30,7 @@ public class WeaponAim : MonoBehaviour
     // LateUpdate, karakterin hareketinden sonra çalışarak en doğru pozisyonu alır.
     private void LateUpdate()
     {
+        if (PauseMenu.IsPaused) return;
         if (Camera.main == null || weaponPivot == null) return;
         
         // 1. Fare pozisyonunu al ve nişan alma yönünü hesapla.

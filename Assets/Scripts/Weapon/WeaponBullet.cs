@@ -26,22 +26,23 @@ public class WeaponBullet : MonoBehaviour
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
+{
+    if (collision.CompareTag("Player") || collision.CompareTag("Bullet"))
+        return;
+
+    Enemy enemy = collision.GetComponent<Enemy>();
+    if (enemy != null)
     {
-        // Oyuncuya veya diğer mermilere çarpmasını engellemek için kontrol ekleyebiliriz (isteğe bağlı).
-        if (collision.CompareTag("Player") || collision.CompareTag("Bullet"))
-        {
-            return; // Hiçbir şey yapma
-        }
-
-        // Düşman bileşeni var mı kontrol et. Düşmanların "Enemy" tag'ine sahip olduğunu varsayıyoruz.
-        Enemy enemy = collision.GetComponent<Enemy>();
-        if (enemy != null)
-        {
-            enemy.TakeDamage(damage);
-        }
-
-        // Çarptıktan sonra mermiyi yok et.
-        // Bu, merminin birden fazla düşmana hasar vermesini engeller.
-        Destroy(gameObject);
+        enemy.TakeDamage(damage);
     }
+
+    Animal animal = collision.GetComponent<Animal>();
+    if (animal != null)
+    {
+        animal.TakeDamage(damage);
+    }
+
+    Destroy(gameObject);
+}
+
 }
