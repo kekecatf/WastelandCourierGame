@@ -18,11 +18,13 @@ public class WeaponCraftingSystem : MonoBehaviour
     public Transform requirementsContainer;
     public GameObject requirementLinePrefab;
     public TextMeshProUGUI craftPromptText;
-    
-    // UI elemanlarını tutmak için bir liste (önceki hatalı kodda eksikti)
-    private List<BlueprintUI> blueprintUIElements = new List<BlueprintUI>(); 
+    private List<BlueprintUI> blueprintUIElements = new List<BlueprintUI>();
     private PlayerStats playerStats;
     private WeaponBlueprint selectedBlueprint;
+    public static bool IsCraftingOpen =>
+    Instance != null && Instance.craftingPanel != null && Instance.craftingPanel.activeSelf;
+
+
 
     void Awake()
     {
@@ -34,7 +36,7 @@ public class WeaponCraftingSystem : MonoBehaviour
         playerStats = FindObjectOfType<PlayerStats>();
         if (playerStats == null) Debug.LogError("Sahnede PlayerStats bulunamadı!");
 
-        InitializeBlueprintList(); // UI listesini başlangıçta oluştur.
+        InitializeBlueprintList();
         if (craftingPanel != null) craftingPanel.SetActive(false);
         ClearDetailInfo();
     }
@@ -54,14 +56,11 @@ public class WeaponCraftingSystem : MonoBehaviour
             }
         }
     }
-    
-    // UI listesini sadece bir kere, oyun başında oluşturur.
+
+
     private void InitializeBlueprintList()
     {
-        // Not: Bu sistem, UI elemanlarını kodla oluşturur. Eğer statik bir listeniz varsa,
-        // bu fonksiyonu Inspector'dan referansları alacak şekilde düzenleyebilirsiniz.
-        // Şimdilik dinamik oluşturma varsayıyoruz.
-        // foreach (var blueprint in availableBlueprints) { ... }
+
     }
 
     public void ToggleCraftingPanel()
@@ -71,14 +70,17 @@ public class WeaponCraftingSystem : MonoBehaviour
 
         if (isActive)
         {
-            UpdateAllBlueprintUI(); // Panel açıldığında UI'ı güncelle
+            Time.timeScale = 0f; // oyun dursun
+            UpdateAllBlueprintUI();
         }
         else
         {
+            Time.timeScale = 1f; // oyun devam etsin
             selectedBlueprint = null;
             ClearDetailInfo();
         }
     }
+
 
     public void SelectBlueprint(WeaponBlueprint blueprint)
     {
@@ -86,12 +88,11 @@ public class WeaponCraftingSystem : MonoBehaviour
         selectedBlueprint = blueprint;
         UpdateDetailPanel();
     }
-    
-    // Paneli açtığında veya bir craft yaptığında tüm UI elemanlarını günceller.
+
+
     public void UpdateAllBlueprintUI()
     {
-        // Bu fonksiyonun çalışması için blueprintUIElements listesinin dolu olması gerekir.
-        // Eğer UI elemanlarını Inspector'dan manuel olarak atıyorsanız, bu listeyi de manuel doldurmalısınız.
+
         foreach (var uiElement in blueprintUIElements)
         {
             uiElement.UpdateStatus();
@@ -139,10 +140,9 @@ public class WeaponCraftingSystem : MonoBehaviour
     {
         if (blueprint == null || playerStats == null) return false;
 
-        // CaravanInventory'de depolanmış mı diye kontrol et.
         if (CaravanInventory.Instance != null && CaravanInventory.Instance.IsWeaponStored(blueprint))
         {
-            return false; // Zaten üretilmiş ve depoda.
+            return false;
         }
 
         foreach (var requirement in blueprint.requiredParts)
@@ -155,20 +155,28 @@ public class WeaponCraftingSystem : MonoBehaviour
         return true;
     }
 
-    // Sadece TEK BİR TryCraftWeapon fonksiyonu olmalı.
     public void TryCraftWeapon()
     {
         if (CanCraft(selectedBlueprint))
         {
             playerStats.ConsumeWeaponParts(selectedBlueprint.requiredParts);
-            
-            // Silahı Karavan'ın deposuna gönder.
+
             CaravanInventory.Instance.StoreWeapon(selectedBlueprint);
-            
+
             UpdateDetailPanel();
             UpdateAllBlueprintUI();
-            
+
             Debug.Log($"Craft BAŞARILI: {selectedBlueprint.weaponName} üretildi ve depoya gönderildi!");
         }
     }
+    public void CloseCraftingPanel()
+    {
+        if (craftingPanel != null && craftingPanel.activeSelf)
+        {
+            craftingPanel.SetActive(false);
+            selectedBlueprint = null;
+            ClearDetailInfo();
+        }
+    }
+
 }

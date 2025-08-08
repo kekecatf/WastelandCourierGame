@@ -10,10 +10,7 @@ public class SettingsMenu : MonoBehaviour
     public TMP_Dropdown qualityDropdown;
     public Toggle fullscreenToggle;
 
-
-
-
-    void Start()
+    private void Start()
     {
         // Ayarları yükle
         musicSlider.value = PlayerPrefs.GetFloat("MusicVolume", 1f);
@@ -30,18 +27,30 @@ public class SettingsMenu : MonoBehaviour
         fullscreenToggle.onValueChanged.AddListener(SetFullscreen);
     }
 
-    public void OpenPanel() => panel.SetActive(true);
-    public void ClosePanel() => panel.SetActive(false);
+    public void OpenPanel()
+    {
+        panel.SetActive(true);
+    }
+
+    public void ClosePanel()
+    {
+        panel.SetActive(false);
+
+        // Eğer ayarlar menüsü pause menüsünden açıldıysa, geri dön
+        if (PauseMenu.Instance != null && PauseMenu.IsPaused)
+        {
+            PauseMenu.Instance.CloseSettings();
+        }
+    }
 
     void SetMusicVolume(float value)
     {
-        AudioListener.volume = value; // örnek
+        AudioListener.volume = value;
         PlayerPrefs.SetFloat("MusicVolume", value);
     }
 
     void SetSFXVolume(float value)
     {
-        // Eğer SFX için ayrı ses kaynağın varsa onu kontrol et
         PlayerPrefs.SetFloat("SFXVolume", value);
     }
 

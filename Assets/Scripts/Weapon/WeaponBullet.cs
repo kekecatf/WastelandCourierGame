@@ -26,23 +26,23 @@ public class WeaponBullet : MonoBehaviour
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
-{
-    if (collision.CompareTag("Player") || collision.CompareTag("Bullet"))
-        return;
-
-    Enemy enemy = collision.GetComponent<Enemy>();
-    if (enemy != null)
     {
-        enemy.TakeDamage(damage);
-    }
+        if (collision.CompareTag("Player") || collision.CompareTag("Bullet"))
+            return;
 
-    Animal animal = collision.GetComponent<Animal>();
-    if (animal != null)
-    {
-        animal.TakeDamage(damage);
-    }
+        Enemy enemy = collision.GetComponent<Enemy>();
+        if (enemy != null)
+        {
+            enemy.TakeDamage(damage);
+        }
 
-    Destroy(gameObject);
-}
+        Animal animal = collision.GetComponent<Animal>();
+        if (animal != null)
+        {
+            animal.TakeDamage(damage);
+        }
+
+        Destroy(gameObject);
+    }
 
 }

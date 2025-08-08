@@ -9,18 +9,36 @@ public class NPCInteraction : MonoBehaviour
 
     private bool isPlayerNearby = false;
     private bool isPanelOpen = false;
-    public GameObject interactPromptUI; // "E" yazan UI objesi
-    public Transform tradeOffersContainer; // Ticaret butonlarının oluşturulacağı yer
-    public GameObject tradeOfferButtonPrefab; // Tek bir ticaret teklifini temsil eden UI butonu
+    public GameObject interactPromptUI;
+    public Transform tradeOffersContainer;
+    public GameObject tradeOfferButtonPrefab;
     private PlayerStats playerStats;
+    public static NPCInteraction Instance { get; private set; }
 
 
+    private void Awake()
+    {
+        Instance = this;
+    }
+
+    public static bool IsTradeOpen =>
+        Instance != null && Instance.tradeUIPanel != null && Instance.tradeUIPanel.activeSelf;
     void Start()
     {
         // PlayerStats referansını oyun başında bir kere alalım, daha verimli.
         playerStats = FindObjectOfType<PlayerStats>();
         if (tradeUIPanel != null) tradeUIPanel.SetActive(false);
         if (interactPromptUI != null) interactPromptUI.SetActive(false);
+    }
+
+        public void CloseTradePanel()
+    {
+        if (tradeUIPanel != null)
+        {
+            tradeUIPanel.SetActive(false);
+            isPanelOpen = false;
+            Time.timeScale = 1f;
+        }
     }
 
     void Update()
@@ -49,24 +67,24 @@ public class NPCInteraction : MonoBehaviour
 
     private void PopulateTradeOffers()
     {
-        // Önce eski butonları temizle
+
         foreach (Transform child in tradeOffersContainer)
         {
             Destroy(child.gameObject);
         }
 
-        // Her bir teklif için yeni bir buton oluştur
+
         foreach (TradeOffer offer in tradeOffers)
         {
             GameObject buttonObject = Instantiate(tradeOfferButtonPrefab, tradeOffersContainer);
-            // Butonun üzerindeki script'e gerekli bilgileri ver.
+
             buttonObject.GetComponent<TradeOfferButton>().Setup(offer, playerStats);
         }
     }
 
     public void ExecuteTrade(TradeOffer offer)
     {
-        // 1. Oyuncunun yeterli materyali var mı diye son bir kontrol.
+
         if (playerStats.GetResourceAmount("Stone") >= offer.requiredStone &&
             playerStats.GetResourceAmount("Wood") >= offer.requiredWood &&
             playerStats.GetResourceAmount("scrapMetal") >= offer.requiredScrapMetal)
@@ -76,18 +94,16 @@ public class NPCInteraction : MonoBehaviour
             playerStats.RemoveResource("Wood", offer.requiredWood);
             playerStats.RemoveResource("scrapMetal", offer.requiredScrapMetal);
 
-            // 3. Silah parçasını oyuncunun envanterine ekle.
             playerStats.CollectWeaponPart(offer.partToGive, offer.amountToGive);
 
             Debug.Log($"Takas başarılı! {offer.amountToGive} adet {offer.partToGive} alındı.");
 
-            // 4. UI'ı anında güncelle ki oyuncu değişikliği görsün.
             PopulateTradeOffers();
         }
         else
         {
             Debug.Log("Takas başarısız! Yeterli materyal yok.");
-            // İsteğe bağlı: Ekranda bir uyarı sesi çal veya mesaj göster.
+
         }
     }
 
@@ -106,35 +122,11 @@ public class NPCInteraction : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             isPlayerNearby = false;
-            CloseTrade();
             if (interactPromptUI != null)
                 interactPromptUI.SetActive(false);
         }
     }
 
-    void OpenTrade()
-    {
-        if (tradeUIPanel != null)
-        {
-            tradeUIPanel.SetActive(true);
-            isPanelOpen = true;
-            Time.timeScale = 0f;
-           // Cursor.visible = true;
-        }
-    }
-
-    void CloseTrade()
-    {
-        if (tradeUIPanel != null)
-        {
-            tradeUIPanel.SetActive(false);
-            isPanelOpen = false;
-            Time.timeScale = 1f;
-
-            // Sadece oyun normal duruma döndüyse imleci gizle
-            /*Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;*/
-        }
-    }
+    
 
 }
