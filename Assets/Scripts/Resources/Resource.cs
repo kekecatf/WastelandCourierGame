@@ -54,6 +54,13 @@ public class Resource : MonoBehaviour
             case ResourceType.RabbitHide:
                 stats.AddResource("RabbitHide", amount);
                 break;
+            case ResourceType.Arrow:
+                stats.AddResource("Arrow", amount);
+                 break;
+            case ResourceType.Spear:
+                stats.AddResource("Spear", amount);
+                break;
+
         }
 
 
