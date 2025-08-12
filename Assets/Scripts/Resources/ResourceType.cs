@@ -6,6 +6,8 @@ public enum ResourceType
     Meat,
     DeerHide,
     RabbitHide,
-    CookedMeat
+    CookedMeat,
+    Arrow,   // ➕
+    Spear    // ➕
 
 }

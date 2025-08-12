@@ -4,11 +4,26 @@ using UnityEngine.UI;
 public class PlayerHealthUI : MonoBehaviour
 {
     public Image fillImage;
+    public PlayerStats playerStats;
 
-    public void SetHealth(float current, float max)
+    void Start()
     {
-        float amount = Mathf.Clamp01(Mathf.Max(current, 0) / max);
-        fillImage.fillAmount = amount;
+        if (playerStats != null)
+        {
+            playerStats.onHealthChanged += UpdateHealthBar;
+        }
+    }
 
+    void OnDestroy()
+    {
+        if (playerStats != null)
+        {
+            playerStats.onHealthChanged -= UpdateHealthBar;
+        }
+    }
+
+    void UpdateHealthBar(int current, int max)
+    {
+        fillImage.fillAmount = Mathf.Clamp01((float)current / max);
     }
 }

@@ -144,6 +144,18 @@ MonoBehaviour:
   hurtSounds: []
   deathSound: {fileID: 0}
   ambientSoundInterval: {x: 5, y: 15}
+  player: {fileID: 0}
+  caravan: {fileID: 0}
+  armoredDamageInterval: 1
+  armoredCaravanDamage: 1
+  explosionRadius: 2
+  explosionDamageToPlayer: 2
+  explosionDamageToCaravan: 2
+  explosionHitMask:
+    serializedVersion: 2
+    m_Bits: 0
+  contactDamageInterval: 1
+  damageToPlayer: 1
   target: {fileID: 6370573785070047475, guid: 07166245952cd734daa010f4526e861c, type: 3}
 --- !u!95 &7092030044526869399
 Animator:
@@ -197,7 +209,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0

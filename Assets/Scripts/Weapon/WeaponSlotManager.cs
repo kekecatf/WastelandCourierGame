@@ -12,11 +12,20 @@ public class WeaponSlotManager : MonoBehaviour
     [Tooltip("Sahnedeki silah GameObject'lerini buraya sırayla atayın (0: Makineli, 1: Tabanca, 2: Kılıç).")]
     public GameObject[] weaponSlots;
 
+    [Header("Spear Blueprints")]
+public WeaponBlueprint spearThrowBlueprint; // Fırlatma mızrağı
+    public WeaponBlueprint spearMeleeBlueprint; // Yakın dövüş mızrağı
+
+
+private int spearSlotIndex = 4; // Throwing Spear’ın bulunduğu slot index’i (örnek 2)
+
+
     [Header("UI Elements")]
     public TextMeshProUGUI ammoText;
     public TextMeshProUGUI reloadPromptText;
 
     private bool[] unlockedWeapons;
+    
 
     private WeaponBlueprint[] equippedBlueprints;
 
@@ -54,6 +63,8 @@ public WeaponBlueprint[] GetEquippedBlueprints()
             if (blueprint != null)
             {
                 int slotIndex = blueprint.weaponSlotIndexToUnlock;
+                if (blueprint == spearThrowBlueprint || blueprint == spearMeleeBlueprint)
+            slotIndex = spearSlotIndex;
                 if (slotIndex >= 0 && slotIndex < equippedBlueprints.Length)
                 {
                     equippedBlueprints[slotIndex] = blueprint;
@@ -65,6 +76,11 @@ public WeaponBlueprint[] GetEquippedBlueprints()
         // 2. Mermi sistemini başlat.
         InitializeAmmo();
         
+     if (spearThrowBlueprint != null &&
+        spearSlotIndex >= 0 && spearSlotIndex < equippedBlueprints.Length)
+    {
+        equippedBlueprints[spearSlotIndex] = spearThrowBlueprint;
+    }
         
     }
 
@@ -94,6 +110,26 @@ public WeaponBlueprint[] GetEquippedBlueprints()
             }
         }
     }
+
+private void ToggleSpearInActiveSlot()
+{
+    if (activeSlotIndex != spearSlotIndex) return;
+
+    var current = equippedBlueprints[spearSlotIndex];
+    if (current == null) return;
+
+    if (current == spearThrowBlueprint)
+        equippedBlueprints[spearSlotIndex] = spearMeleeBlueprint;   // Throwing deaktif, Melee aktif
+    else if (current == spearMeleeBlueprint)
+        equippedBlueprints[spearSlotIndex] = spearThrowBlueprint;   // Melee deaktif, Throwing aktif
+    else
+        return; // O slottaki şey mızrak değilse dokunma
+
+    // Aynı slotta kaldığımız için sadece veriyi uygula
+    ApplyEquippedBlueprintToActiveSlot();
+}
+
+
 
 
 
@@ -149,17 +185,46 @@ public WeaponBlueprint[] GetEquippedBlueprints()
        HandleWeaponSwitchingInput();
 
         if (activeWeapon == null) return;
+        if (Keyboard.current.xKey.wasPressedThisFrame)
+        HandleSpearKey();  // <-- tek giriş noktası
+
         
         // Fare bırakıldığında "boş şarjör sesi çalındı" bayrağını sıfırla.
         if (Mouse.current != null && Mouse.current.leftButton.wasReleasedThisFrame)
         {
             emptyClipSoundPlayedThisPress = false;
         }
-
+        
         HandleShootingInput();
         HandleReloadInput();
         UpdateUI();
     }
+
+    private void HandleSpearKey()
+{
+    // Spear slotunda değilsek: anında spear slotuna geç
+    if (activeSlotIndex != spearSlotIndex)
+    {
+        // Spear slotunda blueprint yoksa Throwing ile başlat
+        if (equippedBlueprints[spearSlotIndex] == null)
+            equippedBlueprints[spearSlotIndex] = spearThrowBlueprint;
+
+        SwitchToSlot(spearSlotIndex); // ANINDA geçiş
+        return;
+    }
+
+    // Spear slotundayız: Throwing <-> Melee anında toggle
+    var current = equippedBlueprints[spearSlotIndex];
+    if (current == spearThrowBlueprint)
+        equippedBlueprints[spearSlotIndex] = spearMeleeBlueprint;
+    else if (current == spearMeleeBlueprint)
+        equippedBlueprints[spearSlotIndex] = spearThrowBlueprint;
+    else
+        return; // Spear dışı bir şey varsa dokunma
+
+    // Aynı slotta kaldık; objeyi kapatmadan veriyi uygula -> ANINDA değişim
+    ApplyEquippedBlueprintToActiveSlot();
+}
 
     private void InitializeAmmo()
     {
@@ -198,71 +263,91 @@ public WeaponBlueprint[] GetEquippedBlueprints()
 }
 
     public void SwitchToSlot(int newIndex)
+    {
+        if (newIndex < 0 || newIndex >= weaponSlots.Length || newIndex == activeSlotIndex) return;
+        if (weaponSlots[newIndex] == null)
+        {
+            Debug.LogError($"Fiziksel silah slotu {newIndex} boş!");
+            return;
+        }
+        if (equippedBlueprints[newIndex] == null)
+        {
+            Debug.Log($"Slot {newIndex} boş, silah değiştirilemez.");
+            return;
+        }
+
+        // --- ESKİ SİLAHIN BİLGİLERİNİ KAYDETME (KRİTİK DEĞİŞİKLİK BURADA) ---
+        // Mevcut bir silah aktifse...
+        if (activeSlotIndex != -1 && activeWeapon != null)
+        {
+            // ...ve bu silahın şarjörü varsa...
+            if (activeWeapon.weaponData.clipSize > 0)
+            {
+                // ...o anki mermi sayısını merkezi diziye kaydet!
+                ammoInClips[activeSlotIndex] = activeWeapon.GetCurrentAmmoInClip();
+                Debug.Log($"{activeWeapon.weaponData.weaponName} (Slot {activeSlotIndex}) mermisi kaydedildi: {ammoInClips[activeSlotIndex]}");
+            }
+
+            // Reload işlemini iptal et ve objeyi kapat.
+            if (activeWeapon.IsReloading())
+            {
+                activeWeapon.StopAllCoroutines();
+            }
+            weaponSlots[activeSlotIndex].SetActive(false);
+        }
+
+        // --- YENİ SİLAHI AÇMA VE BİLGİLERİNİ YÜKLEME ---
+        activeSlotIndex = newIndex;
+        GameObject newWeaponObject = weaponSlots[activeSlotIndex];
+        newWeaponObject.SetActive(true);
+        activeWeapon = newWeaponObject.GetComponent<PlayerWeapon>();
+
+        if (activeWeapon != null)
+        {
+            activeWeapon.weaponData = equippedBlueprints[activeSlotIndex].weaponData;
+
+            // Yeni silahın kaydedilmiş mermi durumunu merkezi diziden yükle.
+            if (activeWeapon.weaponData.clipSize > 0)
+            {
+                activeWeapon.SetAmmoInClip(ammoInClips[activeSlotIndex]);
+            }
+
+            Debug.Log($"Başarıyla '{activeWeapon.weaponData.weaponName}' silahına geçildi.");
+            UpdateUI();
+
+            if (WeaponSlotUI.Instance != null)
+            {
+                WeaponSlotUI.Instance.UpdateHighlight(activeSlotIndex);
+            }
+        }
+    }
+
+// Aktif slottaki blueprint değiştiğinde, obje kapatıp açmadan verileri uygular.
+private void ApplyEquippedBlueprintToActiveSlot()
 {
-    if (newIndex < 0 || newIndex >= weaponSlots.Length || newIndex == activeSlotIndex) return;
-    if (weaponSlots[newIndex] == null)
-    {
-        Debug.LogError($"Fiziksel silah slotu {newIndex} boş!");
-        return;
-    }
-    if (equippedBlueprints[newIndex] == null)
-    {
-        Debug.Log($"Slot {newIndex} boş, silah değiştirilemez.");
-        return;
-    }
+    if (activeSlotIndex < 0 || activeWeapon == null) return;
 
-    // --- ESKİ SİLAHIN BİLGİLERİNİ KAYDETME (KRİTİK DEĞİŞİKLİK BURADA) ---
-    // Mevcut bir silah aktifse...
-    if (activeSlotIndex != -1 && activeWeapon != null)
-    {
-        // ...ve bu silahın şarjörü varsa...
-        if (activeWeapon.weaponData.clipSize > 0)
-        {
-            // ...o anki mermi sayısını merkezi diziye kaydet!
-            ammoInClips[activeSlotIndex] = activeWeapon.GetCurrentAmmoInClip();
-            Debug.Log($"{activeWeapon.weaponData.weaponName} (Slot {activeSlotIndex}) mermisi kaydedildi: {ammoInClips[activeSlotIndex]}");
-        }
-        
-        // Reload işlemini iptal et ve objeyi kapat.
-        if (activeWeapon.IsReloading())
-        {
-            activeWeapon.StopAllCoroutines();
-        }
-        weaponSlots[activeSlotIndex].SetActive(false);
-    }
-    
-    // --- YENİ SİLAHI AÇMA VE BİLGİLERİNİ YÜKLEME ---
-    activeSlotIndex = newIndex;
-    GameObject newWeaponObject = weaponSlots[activeSlotIndex];
-    newWeaponObject.SetActive(true);
-    activeWeapon = newWeaponObject.GetComponent<PlayerWeapon>();
+    var bp = equippedBlueprints[activeSlotIndex];
+    if (bp == null) return;
 
-    if (activeWeapon != null)
-    {
-        activeWeapon.weaponData = equippedBlueprints[activeSlotIndex].weaponData;
-        
-        // Yeni silahın kaydedilmiş mermi durumunu merkezi diziden yükle.
-        if (activeWeapon.weaponData.clipSize > 0)
-        {
-            activeWeapon.SetAmmoInClip(ammoInClips[activeSlotIndex]);
-        }
+    activeWeapon.weaponData = bp.weaponData;
 
-        Debug.Log($"Başarıyla '{activeWeapon.weaponData.weaponName}' silahına geçildi.");
-        UpdateUI();
-        
-        if (WeaponSlotUI.Instance != null)
-        {
-            WeaponSlotUI.Instance.UpdateHighlight(activeSlotIndex);
-        }
-    }
+    if (activeWeapon.weaponData.clipSize > 0)
+        activeWeapon.SetAmmoInClip(ammoInClips[activeSlotIndex]);
+
+    UpdateUI();
+    if (WeaponSlotUI.Instance != null)
+        WeaponSlotUI.Instance.UpdateHighlight(activeSlotIndex);
 }
+
+
 
     // --- Ateş Etme, Şarjör Değiştirme ve UI Fonksiyonları ---
     // Bu kısımlar önceki versiyonlarla büyük ölçüde aynı kalabilir.
 
     private void HandleShootingInput()
-{
-    if (activeWeapon == null || Mouse.current == null) return;
+    {
+        if (activeWeapon == null || Mouse.current == null) return;
 
         bool isAutomatic = activeWeapon.weaponData.isAutomatic;
         bool isShootingPressed = isAutomatic ? Mouse.current.leftButton.isPressed : Mouse.current.leftButton.wasPressedThisFrame;
@@ -282,9 +367,17 @@ public WeaponBlueprint[] GetEquippedBlueprints()
                     emptyClipSoundPlayedThisPress = true;
                     StartReload(); // Otomatik reload'u sadece bir kez dene.
                 }
+                // YENİ: Throwing mermisi bittiyse aynı slottaki Melee’ye geç
+if (activeWeapon.weaponData.weaponName.Contains("ThrowingSpear"))
+{
+    equippedBlueprints[activeSlotIndex] = spearMeleeBlueprint;
+    ApplyEquippedBlueprintToActiveSlot();
+}
+
+
             }
         }
-}
+    }
 
 
     private void HandleReloadInput()

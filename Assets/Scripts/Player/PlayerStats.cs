@@ -3,6 +3,25 @@ using UnityEngine;
 
 public class PlayerStats : MonoBehaviour
 {
+
+[Header("Health")]
+public int maxHealth = 100;
+public int currentHealth;
+public float damageCooldown = 0.5f; // aynı kaynaktan çok sık hasar yememek için
+private float lastDamageTime = -999f;
+
+public delegate void OnDeath();
+    public event OnDeath onDeath;
+
+  [Header("UI")]
+    [SerializeField] private PlayerHealthUI healthUI; // ⬅️ Canvas'taki PlayerHealthUI’yi buraya sürükle
+
+
+
+public delegate void OnHealthChanged(int current, int max);
+public event OnHealthChanged onHealthChanged;
+
+
     public float moveSpeed = 5f;
     public int inventoryCapacity = 20;
     public int gold = 10;
@@ -32,12 +51,55 @@ public class PlayerStats : MonoBehaviour
     {
         currentHunger = maxHunger;
         hungerTimer = hungerDecreaseInterval;
+        currentHealth = maxHealth;
+
+        
     }
+
+
 
     void Update()
     {
         HandleHunger();
     }
+
+    public bool IsAlive() => currentHealth > 0;
+
+public void TakeDamage(int amount)
+{
+    if (!IsAlive()) return;
+
+    // cooldown: çok sık hasar yemeyi engelle
+    if (Time.time - lastDamageTime < damageCooldown) return;
+    lastDamageTime = Time.time;
+
+    currentHealth = Mathf.Max(0, currentHealth - amount);
+    onHealthChanged?.Invoke(currentHealth, maxHealth); // UI tetikle
+
+    if (currentHealth <= 0)
+    {
+        Die();
+    }
+}
+
+public void Heal(int amount)
+{
+    if (!IsAlive()) return;
+    currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
+    onHealthChanged?.Invoke(currentHealth, maxHealth); // oyunun başında güncelle
+}
+
+private void Die()
+{
+    Debug.Log("💀 Oyuncu öldü!");
+    onDeath?.Invoke();
+
+    // İstersen burada hareketi/ateşi kitlersin:
+    // GetComponent<PlayerMovement>()?.enabled = false;
+    // GetComponent<WeaponSlotManager>()?.enabled = false;
+    // respawn/yeniden doğma ekranı vs. burada tetiklenebilir.
+}
+
 
     void HandleHunger()
     {

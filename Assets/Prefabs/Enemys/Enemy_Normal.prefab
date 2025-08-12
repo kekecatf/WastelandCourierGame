@@ -81,7 +81,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: 6272512244778596772, guid: 5802ab2e5e9d40b419a45a0542841122, type: 3}
+  m_Sprite: {fileID: 8793729625641108797, guid: ab77a868cb2efa247a64446b4917c773, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -144,6 +144,18 @@ MonoBehaviour:
   hurtSounds: []
   deathSound: {fileID: 0}
   ambientSoundInterval: {x: 5, y: 15}
+  player: {fileID: 0}
+  caravan: {fileID: 0}
+  armoredDamageInterval: 1
+  armoredCaravanDamage: 1
+  explosionRadius: 2
+  explosionDamageToPlayer: 2
+  explosionDamageToCaravan: 2
+  explosionHitMask:
+    serializedVersion: 2
+    m_Bits: 0
+  contactDamageInterval: 1
+  damageToPlayer: 1
   target: {fileID: 6370573785070047475, guid: 07166245952cd734daa010f4526e861c, type: 3}
 --- !u!95 &-8429525953165891100
 Animator:
@@ -155,7 +167,7 @@ Animator:
   m_GameObject: {fileID: 5687110353871480299}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 35beb751fd60a2141be0a92ad7c7f683, type: 2}
+  m_Controller: {fileID: 9100000, guid: 9b88224beb62e4749addd6696687535d, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -197,7 +209,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
@@ -205,7 +217,7 @@ BoxCollider2D:
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 4.65, y: 3.25}
+    oldSize: {x: 2.65, y: 3.6}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
