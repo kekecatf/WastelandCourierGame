@@ -1,3 +1,4 @@
+// MainMenu.cs
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.InputSystem;
@@ -11,7 +12,13 @@ public class MainMenu : MonoBehaviour
     public GameObject mainPanel;
     public GameObject settingsPanel;
 
+    // 🔹 Yeni:
+    public GameObject creditsPanel;
+
     private bool isInSettings = false;
+
+    // 🔹 Yeni:
+    private bool isInCredits = false;
 
     private void Start()
     {
@@ -20,9 +27,11 @@ public class MainMenu : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current.escapeKey.wasPressedThisFrame && isInSettings)
+        // Ayarlardayken ESC -> geri
+        if (Keyboard.current.escapeKey.wasPressedThisFrame)
         {
-            CloseSettings(); // ESC ile ayarlardan geri dön
+            if (isInSettings) { CloseSettings(); return; }
+            if (isInCredits)  { CloseCredits();  return; }
         }
     }
 
@@ -50,7 +59,6 @@ public class MainMenu : MonoBehaviour
             mainPanel.SetActive(false);
             settingsPanel.SetActive(true);
             isInSettings = true;
-            Debug.Log("⚙️ Ayarlar paneli açıldı.");
         }
     }
 
@@ -61,12 +69,32 @@ public class MainMenu : MonoBehaviour
             settingsPanel.SetActive(false);
             mainPanel.SetActive(true);
             isInSettings = false;
-            Debug.Log("⬅️ Ayarlardan ana menüye dönüldü.");
         }
     }
 
     public void QuitGame()
     {
         Application.Quit();
+    }
+
+    // 🔹 Credits aç/kapat
+    public void OpenCredits()
+    {
+        if (creditsPanel != null && mainPanel != null)
+        {
+            mainPanel.SetActive(false);
+            creditsPanel.SetActive(true);
+            isInCredits = true;
+        }
+    }
+
+    public void CloseCredits()
+    {
+        if (creditsPanel != null && mainPanel != null)
+        {
+            creditsPanel.SetActive(false);
+            mainPanel.SetActive(true);
+            isInCredits = false;
+        }
     }
 }

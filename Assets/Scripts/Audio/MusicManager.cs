@@ -21,6 +21,9 @@ public class MusicManager : MonoBehaviour
     private bool isDay = true;
     private int currentTrackIndex = -1;
 
+    private bool isAppPaused = false;
+    private bool wasPausedByFocus = false;
+
     void Awake()
     {
         // Singleton Pattern
@@ -41,12 +44,16 @@ public class MusicManager : MonoBehaviour
 
     void Update()
     {
-        // Eğer müzik çalmıyorsa ve çalınacak şarkı varsa, bir sonraki şarkıya geç.
+        // Uygulama odak dışındayken/pauselayken asla parça değiştirme
+        if (isAppPaused) return;
+
+        // Sadece gerçekten şarkı bitince yeni parçaya geç
         if (!audioSource.isPlaying && (isDay ? dayMusicPlaylist.Count > 0 : nightMusicPlaylist.Count > 0))
         {
             PlayNextTrack();
         }
     }
+
 
     // DayNightCycle bu fonksiyonu çağırarak durumu bildirir.
     public void SetDay(bool isCurrentlyDay)
@@ -55,7 +62,7 @@ public class MusicManager : MonoBehaviour
         if (this.isDay == isCurrentlyDay) return;
 
         this.isDay = isCurrentlyDay;
-        
+
         // Yeni duruma göre yeni bir şarkı başlat.
         StartCoroutine(CrossfadeToNextTrack());
     }
@@ -67,7 +74,7 @@ public class MusicManager : MonoBehaviour
 
         // Rastgele bir sonraki şarkı seç (aynı şarkıyı tekrar çalmasın diye kontrol edebiliriz).
         int nextTrackIndex = Random.Range(0, currentPlaylist.Count);
-        if(currentPlaylist.Count > 1 && nextTrackIndex == currentTrackIndex)
+        if (currentPlaylist.Count > 1 && nextTrackIndex == currentTrackIndex)
         {
             nextTrackIndex = (nextTrackIndex + 1) % currentPlaylist.Count;
         }
@@ -94,4 +101,38 @@ public class MusicManager : MonoBehaviour
         // Yeni duruma göre bir sonraki şarkıyı çal
         PlayNextTrack();
     }
+
+    // Uygulama duraklatıldığında/geri gelince çağrılır
+    void OnApplicationPause(bool pause)
+    {
+        isAppPaused = pause;
+        if (audioSource == null) return;
+
+        if (pause)
+        {
+            // Odak gidince o anki şarkıyı duraklat (clip ve time korunur)
+            if (audioSource.isPlaying)
+            {
+                audioSource.Pause();
+                wasPausedByFocus = true;
+            }
+        }
+        else
+        {
+            // Geri dönünce aynen kaldığı yerden devam et
+            if (wasPausedByFocus)
+            {
+                audioSource.UnPause();
+                wasPausedByFocus = false;
+            }
+        }
+    }
+
+    // Bazı platformlarda sadece focus tetiklenir; aynı mantığı yönlendir
+    void OnApplicationFocus(bool hasFocus)
+    {
+        OnApplicationPause(!hasFocus);
+    }
+
+    
 }

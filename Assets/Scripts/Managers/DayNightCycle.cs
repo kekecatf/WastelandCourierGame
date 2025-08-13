@@ -1,3 +1,4 @@
+// DayNightCycle.cs
 using UnityEngine;
 
 public class DayNightCycle : MonoBehaviour
@@ -15,32 +16,52 @@ public class DayNightCycle : MonoBehaviour
 
     private bool isDay = true;
 
-    void Start()
+    // ✅ SAHNE HER AÇILDIĞINDA ÇAĞRILACAK
+    void Awake()
     {
-        isDay = true;
-        timer = dayDuration;
+        ResetCycle();
+    }
+
+    // (İstersen OnEnable’da da güvenceye alabilirsin)
+    void OnEnable()
+    {
+        // ResetCycle();  // Awake yetmiyorsa bunu da aç
     }
 
     void Update()
     {
         timer -= Time.deltaTime;
-
-        if (timer <= 0)
+        if (timer <= 0f)
         {
             isDay = !isDay;
             timer = isDay ? dayDuration : nightDuration;
 
-            if (isDay)
-                HandleDayStart();
-            else
-                HandleNightStart();
+            if (isDay) HandleDayStart();
+            else       HandleNightStart();
         }
+    }
+
+    // ✅ YENİ: Baştan kurulum
+    public void ResetCycle()
+    {
+        isDay = true;
+        timer = dayDuration;
+
+        // Gündüz başlangıç durumunu tüm sistemlere uygula
+        lightController?.SetDay(true);
+        spawner?.RegenerateResources(0f);      // İstersen 0f; açılışta respawn yapma
+        enemyManager?.ResetDayCount();         // Gece sayacını sıfırla
+
+        SetAnimalsNightState(false);
+
+        // MusicManager sahneler arası yaşıyorsa (DontDestroyOnLoad), ilk state’i bildir
+        if (MusicManager.Instance != null)
+            MusicManager.Instance.SetDay(true);
     }
 
     void HandleDayStart()
     {
-        Debug.Log("☀️ Sabah oldu - Kaynaklar yenileniyor");
-        spawner.RegenerateResources(regenerationRatio);
+        spawner?.RegenerateResources(regenerationRatio);
         SetAnimalsNightState(false);
         lightController?.SetDay(true);
         MusicManager.Instance?.SetDay(true);
@@ -48,17 +69,15 @@ public class DayNightCycle : MonoBehaviour
 
     void HandleNightStart()
     {
-        Debug.Log("🌙 Gece başladı - Düşmanlar geliyor!");
         enemyManager?.SpawnEnemies();
         SetAnimalsNightState(true);
         lightController?.SetDay(false);
         MusicManager.Instance?.SetDay(false);
     }
 
-    void SetAnimalsNightState(bool isNight)
+    void SetAnimalsNightState(bool night)
     {
-        Animal[] allAnimals = FindObjectsOfType<Animal>();
-        foreach (var animal in allAnimals)
-            animal.SetNight(isNight);
+        foreach (var a in FindObjectsOfType<Animal>())
+            a.SetNight(night);
     }
 }
