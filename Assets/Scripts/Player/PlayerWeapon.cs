@@ -39,8 +39,9 @@ public class PlayerWeapon : MonoBehaviour
 
     public void Shoot()
     {
-        if (PauseMenu.IsPaused || isReloading || Time.time < nextTimeToFire)
-        return;
+        if (PauseMenu.IsPaused || GameStateManager.IsGameOver || isReloading || Time.time < nextTimeToFire)
+            return;
+
         if (isReloading || Time.time < nextTimeToFire) return;
 
         if (weaponData.clipSize <= 0) // Melee check
@@ -54,33 +55,33 @@ public class PlayerWeapon : MonoBehaviour
     }
 
     private void RangedAttack()
-{
-    if (currentAmmoInClip <= 0)
     {
-        // Mermi yoksa boş ses çal
-        return;
-    }
-
-    nextTimeToFire = Time.time + 1f / weaponData.fireRate;
-    currentAmmoInClip--;
-
-    if (shootSound != null) audioSource.PlayOneShot(shootSound);
-    if (animator != null) animator.SetTrigger("Shoot");
-
-    if (bulletPrefab != null && firePoint != null)
-    {
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
-        
-        // WeaponBullet scriptindeki damage değerini burada atıyoruz
-        WeaponBullet bulletScript = bullet.GetComponent<WeaponBullet>();
-        if (bulletScript != null)
+        if (currentAmmoInClip <= 0)
         {
-            bulletScript.damage = weaponData.damage;
+            // Mermi yoksa boş ses çal
+            return;
         }
-    }
 
-    WeaponSlotManager.Instance.UpdateAmmoText();
-}
+        nextTimeToFire = Time.time + 1f / weaponData.fireRate;
+        currentAmmoInClip--;
+
+        if (shootSound != null) audioSource.PlayOneShot(shootSound);
+        if (animator != null) animator.SetTrigger("Shoot");
+
+        if (bulletPrefab != null && firePoint != null)
+        {
+            GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+
+            // WeaponBullet scriptindeki damage değerini burada atıyoruz
+            WeaponBullet bulletScript = bullet.GetComponent<WeaponBullet>();
+            if (bulletScript != null)
+            {
+                bulletScript.damage = weaponData.damage;
+            }
+        }
+
+        WeaponSlotManager.Instance.UpdateAmmoText();
+    }
 
 
     private void MeleeAttack()
@@ -88,12 +89,12 @@ public class PlayerWeapon : MonoBehaviour
         nextTimeToFire = Time.time + 1f / weaponData.fireRate;
 
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(firePoint.position, weaponData.attackRange, enemyLayer);
-        foreach(Collider2D enemyCollider in hitEnemies)
+        foreach (Collider2D enemyCollider in hitEnemies)
         {
             // Düşmana hasar verme mantığı...
         }
     }
-    
+
     public void PlayEmptyClipSound()
     {
         if (emptyClipSound != null && !audioSource.isPlaying)
@@ -117,12 +118,12 @@ public class PlayerWeapon : MonoBehaviour
         WeaponSlotManager.Instance.FinishReload();
 
         isReloading = false;
-        
+
         Debug.Log("Reload finished.");
     }
 
     // Yardımcı Fonksiyonlar
     public void SetAmmoInClip(int amount) => currentAmmoInClip = amount;
     public int GetCurrentAmmoInClip() => currentAmmoInClip;
-    public bool IsReloading() => isReloading;
+    public bool IsReloading() => isReloading;
 }

@@ -41,7 +41,7 @@ public class WeaponAim : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (GameStateManager.IsGamePaused) return;
+        if (GameStateManager.IsGamePaused ||GameStateManager.IsGameOver) return;
         if (Camera.main == null || weaponPivot == null) return;
 
         // Fare hedefi

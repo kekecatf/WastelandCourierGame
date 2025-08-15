@@ -5,6 +5,8 @@ using TMPro;
 public class SettingsMenu : MonoBehaviour
 {
     public GameObject panel;
+    public Slider masterSlider;
+
     public Slider musicSlider;
     public Slider sfxSlider;
     public TMP_Dropdown qualityDropdown;
@@ -13,6 +15,9 @@ public class SettingsMenu : MonoBehaviour
     private void Start()
     {
         // Ayarları yükle
+        masterSlider.value = PlayerPrefs.GetFloat("MasterVolume", 1f);
+        masterSlider.onValueChanged.AddListener(SetMasterVolume);
+
         musicSlider.value = PlayerPrefs.GetFloat("MusicVolume", 1f);
         sfxSlider.value = PlayerPrefs.GetFloat("SFXVolume", 1f);
         qualityDropdown.value = PlayerPrefs.GetInt("QualityLevel", QualitySettings.GetQualityLevel());
@@ -43,15 +48,20 @@ public class SettingsMenu : MonoBehaviour
         }
     }
 
+    void SetMasterVolume(float value)
+    {
+        AudioManager.Instance?.SetMasterVolume(value);
+    }
+
+
     void SetMusicVolume(float value)
     {
-        AudioListener.volume = value;
-        PlayerPrefs.SetFloat("MusicVolume", value);
+        AudioManager.Instance?.SetMusicVolume(value);
     }
 
     void SetSFXVolume(float value)
     {
-        PlayerPrefs.SetFloat("SFXVolume", value);
+        AudioManager.Instance?.SetSFXVolume(value);
     }
 
     void SetQuality(int index)

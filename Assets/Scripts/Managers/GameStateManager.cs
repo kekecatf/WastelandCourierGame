@@ -5,4 +5,12 @@ public static class GameStateManager
         PauseMenu.IsPaused ||
         WeaponCraftingSystem.IsCraftingOpen ||
         NPCInteraction.IsTradeOpen;
+    public static bool IsGameOver = false;
+
+    public static void ResetGameState()
+    {
+        IsGameOver = false;
+    }
+
+
 }

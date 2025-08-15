@@ -395,7 +395,9 @@ private void Explode()
 
     // Ses/loot/animasyon vs:
     if (hpBarInstance != null) Destroy(hpBarInstance);
-    if (deathSound != null) AudioSource.PlayClipAtPoint(deathSound, transform.position);
+    if (deathSound != null) AudioManager.Instance?.PlayOneShotAt(deathSound, transform.position);
+
+
 
     // İstersen kısa gecikmeyle yok et ki animasyon/ses bitsin
     Destroy(gameObject);
@@ -412,7 +414,9 @@ private void Explode()
         if (deathSound != null)
         {
             // Ölüm sesi, obje yok olmadan önce duyulabilsin diye yeni bir obje üzerinde çalınır.
-            AudioSource.PlayClipAtPoint(deathSound, transform.position);
+            AudioManager.Instance?.PlayOneShotAt(deathSound, transform.position);
+
+
         }
 
         animator.Play("Die"); // Ölüm animasyonunu oynat

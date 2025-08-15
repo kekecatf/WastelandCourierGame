@@ -31,7 +31,7 @@ public class MainMenu : MonoBehaviour
         if (Keyboard.current.escapeKey.wasPressedThisFrame)
         {
             if (isInSettings) { CloseSettings(); return; }
-            if (isInCredits)  { CloseCredits();  return; }
+            if (isInCredits) { CloseCredits(); return; }
         }
     }
 
@@ -49,6 +49,8 @@ public class MainMenu : MonoBehaviour
 
     public void StartGame()
     {
+        GameStateManager.ResetGameState(); // <-- oyun durumu sıfırlanır
+        Time.timeScale = 1f;
         SceneManager.LoadScene("Bolum1");
     }
 
