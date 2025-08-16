@@ -17433,6 +17433,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7491096593534229197, guid: 07a908643281ab54ca3642d35a5b12f8, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1138300199}
+    - target: {fileID: 7491096593534229197, guid: 07a908643281ab54ca3642d35a5b12f8, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: CloseSettings
+      objectReference: {fileID: 0}
+    - target: {fileID: 7491096593534229197, guid: 07a908643281ab54ca3642d35a5b12f8, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: PauseMenu, Assembly-CSharp
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -32751,7 +32763,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 40
+  m_SortingOrder: 10
   m_Sprite: {fileID: 2031992868565647794, guid: 0c89bcec77114c84fa61d39c0a5aab48, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -53787,7 +53799,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 40
+  m_SortingOrder: 10
   m_Sprite: {fileID: -952550666369105273, guid: b79f2ecc80f5a604f8e899515e907df5, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -73463,12 +73475,12 @@ RectTransform:
   - {fileID: 697341591}
   - {fileID: 409191803}
   - {fileID: 584649223}
+  - {fileID: 1443784331006730049}
   - {fileID: 1398902497}
   - {fileID: 1615925775}
   - {fileID: 946594833}
   - {fileID: 1729200607}
   - {fileID: 1423785451}
-  - {fileID: 1443784331006730049}
   - {fileID: 69925606313886337}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -79483,7 +79495,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 40
+  m_SortingOrder: 10
   m_Sprite: {fileID: -2362686522460402754, guid: c06d39f8f839a8f429f84c67a7f91114, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -87224,19 +87236,6 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
---- !u!114 &29364505870970531
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7750047273351970884}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b8876f339876d1a42be02a65a0530f16, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yOffset: -0.5
 --- !u!224 &69925606313886337
 RectTransform:
   m_ObjectHideFlags: 0
@@ -87759,7 +87758,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 40
+  m_SortingOrder: 10
   m_Sprite: {fileID: 7482667652216324306, guid: 75f5f34dc1b5347e0b8351032682f224, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -88677,7 +88676,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 40
+  m_SortingOrder: 10
   m_Sprite: {fileID: 564439294832975815, guid: 7a62928c4b4846140a4fd9b6aa1fdda1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -89030,7 +89029,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 40
+  m_SortingOrder: 10
   m_Sprite: {fileID: -952550666369105273, guid: b79f2ecc80f5a604f8e899515e907df5, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -89147,7 +89146,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 40
+  m_SortingOrder: 10
   m_Sprite: {fileID: -4854829337826818713, guid: 21eede3dc6467ce46b72c8f2dbf7dbef, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -90995,7 +90994,6 @@ GameObject:
   - component: {fileID: 7074051712779042130}
   - component: {fileID: 3239924835469068050}
   - component: {fileID: 9190093549287989885}
-  - component: {fileID: 29364505870970531}
   - component: {fileID: 6796307520168768126}
   m_Layer: 0
   m_Name: Player

@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 7602325027930007479}
   - component: {fileID: 4836736757856030809}
   - component: {fileID: 7667827809458824161}
-  - component: {fileID: 8274462764553850256}
   m_Layer: 0
   m_Name: NPC
   m_TagString: Untagged
@@ -159,16 +158,3 @@ MonoBehaviour:
   interactPromptUI: {fileID: 0}
   tradeOffersContainer: {fileID: 0}
   tradeOfferButtonPrefab: {fileID: 4346082350058725167, guid: 2114c8c07bb03724d8dfcfc14bb9fce3, type: 3}
---- !u!114 &8274462764553850256
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7961123093159754099}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b8876f339876d1a42be02a65a0530f16, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yOffset: 0
