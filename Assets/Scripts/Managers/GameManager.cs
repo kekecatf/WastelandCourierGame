@@ -33,7 +33,9 @@ public class GameManager : MonoBehaviour
     public void LoadNextScene()
     {
         Debug.Log("🚚 Tüm yakıtlar toplandı, sonraki sahneye geçiliyor...");
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        int currentIndex = SceneManager.GetActiveScene().buildIndex;
+        SaveSystem.MarkLevelComplete(currentIndex);
+        SceneManager.LoadScene(currentIndex + 1);
     }
 
     public void GameOver()
@@ -69,7 +71,7 @@ public class GameManager : MonoBehaviour
 
     public void ReturnToMainMenu()
     {
-        
+
         Time.timeScale = 1f;
         SceneManager.LoadScene("MainMenu"); // Menü sahnenin ismi bu olmalı
     }

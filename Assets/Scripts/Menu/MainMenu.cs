@@ -14,8 +14,10 @@ public class MainMenu : MonoBehaviour
 
     // 🔹 Yeni:
     public GameObject creditsPanel;
+    public GameObject levelPanel;
 
     private bool isInSettings = false;
+    private bool isInLevels = false;
 
     // 🔹 Yeni:
     private bool isInCredits = false;
@@ -32,6 +34,7 @@ public class MainMenu : MonoBehaviour
         {
             if (isInSettings) { CloseSettings(); return; }
             if (isInCredits) { CloseCredits(); return; }
+            if (isInLevels) { CloseLevels(); return; }
         }
     }
 
@@ -77,6 +80,26 @@ public class MainMenu : MonoBehaviour
     public void QuitGame()
     {
         Application.Quit();
+    }
+
+    public void OpenLevels()
+    {
+        if (levelPanel != null && mainPanel != null)
+        {
+            mainPanel.SetActive(false);
+            levelPanel.SetActive(true);
+            isInLevels = true;
+        }
+    }
+
+    public void CloseLevels()
+    {
+        if (levelPanel != null && mainPanel != null)
+        {
+            levelPanel.SetActive(false);
+            mainPanel.SetActive(true);
+            isInCredits = false;
+        }
     }
 
     // 🔹 Credits aç/kapat
