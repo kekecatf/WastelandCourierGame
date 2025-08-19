@@ -12,14 +12,14 @@ public class LevelSelectMenu : MonoBehaviour
         {
             int index = i;
 
-            // İlk bölüm daima açık
-            bool isUnlocked = (i == 0) || SaveSystem.IsLevelCompleted(i);
+            // ✅ DÜZELTİLDİ
+            bool isUnlocked = (i == 0) || SaveSystem.IsLevelCompleted(i - 1);
 
             levelButtons[i].interactable = isUnlocked;
-
             levelButtons[i].onClick.AddListener(() => LoadLevel(index));
         }
     }
+
 
     void LoadLevel(int levelIndex)
     {

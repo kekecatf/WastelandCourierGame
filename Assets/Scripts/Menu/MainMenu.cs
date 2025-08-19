@@ -22,9 +22,27 @@ public class MainMenu : MonoBehaviour
     // 🔹 Yeni:
     private bool isInCredits = false;
 
+
+    public void YeniOyunaBasla()
+    {
+        PlayerPrefs.DeleteAll(); // tüm ilerlemeyi sıfırla
+        SceneManager.LoadScene("Bolum1");
+    }
+
+    public void DevamEt()
+    {
+        int lastLevel = PlayerPrefs.GetInt("LastLevel", 1);
+        SceneManager.LoadScene("Bolum" + lastLevel);
+    }
+
     private void Start()
     {
         StartCoroutine(PlayMusicWithDelay(0.5f));
+        // Eğer hiç kayıt yoksa "Devam Et" butonunu pasifleştir
+        if (!PlayerPrefs.HasKey("LastLevel"))
+        {
+            GameObject.Find("DevamEtButton").GetComponent<UnityEngine.UI.Button>().interactable = false;
+        }
     }
 
     private void Update()

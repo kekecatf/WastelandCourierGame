@@ -56,10 +56,12 @@ public class Resource : MonoBehaviour
                 break;
             case ResourceType.Arrow:
                 stats.AddResource("Arrow", amount);
-                 break;
+                break;
             case ResourceType.Spear:
                 stats.AddResource("Spear", amount);
                 break;
+            case ResourceType.Herb: stats.AddResource("Herb", amount); break;
+            case ResourceType.CookedMeat: stats.AddResource("CookedMeat", amount); break;   // ✅ EKLENDİ
 
         }
 
