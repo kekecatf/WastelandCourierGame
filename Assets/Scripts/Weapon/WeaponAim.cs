@@ -11,7 +11,6 @@ public class WeaponAim : MonoBehaviour
     [Tooltip("Bu silaha ait Light 2D objesi.")]
     public Light2D flashlight;
 
-    [Header("Muzzle")]
     [Tooltip("Merminin çıkacağı namlu ucu transformu.")]
     public Transform firePoint;
 

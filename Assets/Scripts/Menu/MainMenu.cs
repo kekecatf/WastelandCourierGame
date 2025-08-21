@@ -41,7 +41,7 @@ public class MainMenu : MonoBehaviour
         // Eğer hiç kayıt yoksa "Devam Et" butonunu pasifleştir
         if (!PlayerPrefs.HasKey("LastLevel"))
         {
-            GameObject.Find("DevamEtButton").GetComponent<UnityEngine.UI.Button>().interactable = false;
+            GameObject.Find("Continue Button").GetComponent<UnityEngine.UI.Button>().interactable = false;
         }
     }
 
