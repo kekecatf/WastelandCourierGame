@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿// PlayerWeapon.cs (MUZZLE FLASH + SHOTGUN + HAYVAN KAÇIRMA ENTEGRE)
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -7,7 +8,7 @@ public class PlayerWeapon : MonoBehaviour
 {
     // --- INSPECTOR'DA ATANACAK ALANLAR ---
     [Header("Weapon Configuration")]
-    public WeaponData weaponData;
+    public WeaponData weaponData;   // WeaponData içinde: isShotgun, pelletsPerShot, pelletSpreadAngle, shotgunCooldown beklenir.
 
     [Header("Weapon Components")]
     public Transform firePoint;
@@ -35,11 +36,18 @@ public class PlayerWeapon : MonoBehaviour
     private float nextTimeToFire = 0f;
     private bool isReloading = false;
 
+    [Header("Noise Settings")]
+    [Tooltip("Silah sesiyle hayvanların duyacağı menzil.")]
+    public float gunshotHearingRadius = 12f;
+    [Tooltip("Hayvanların kaçma süresi (sn).")]
+    public float gunshotFleeDuration = 3f;
+    [Tooltip("Kaçış hız çarpanı.")]
+    public float gunshotFleeMultiplier = 1.8f;
+
     void Awake()
     {
         audioSource = GetComponent<AudioSource>();
         animator = GetComponentInChildren<Animator>();
-
         if (muzzleFlash != null) muzzleFlash.enabled = false;
     }
 
@@ -48,7 +56,7 @@ public class PlayerWeapon : MonoBehaviour
         isReloading = false;
         if (muzzleFlash != null) muzzleFlash.enabled = false;
     }
-    
+
     private void OnDisable()
     {
         if (muzzleFlash != null) muzzleFlash.enabled = false;
@@ -56,69 +64,110 @@ public class PlayerWeapon : MonoBehaviour
 
     public void Shoot()
     {
-        if (PauseMenu.IsPaused || isReloading || Time.time < nextTimeToFire)
-            return;
-        if (isReloading || Time.time < nextTimeToFire) return;
+        if (PauseMenu.IsPaused || isReloading || Time.time < nextTimeToFire) return;
 
-        if (weaponData.clipSize <= 0) // Melee check
-        {
+        if (weaponData.clipSize <= 0) // Melee
             MeleeAttack();
-        }
-        else // Ranged
-        {
+        else
             RangedAttack();
-        }
     }
 
     private void RangedAttack()
-{
-    if (currentAmmoInClip <= 0) return;
-
-    nextTimeToFire = Time.time + 1f / weaponData.fireRate;
-    currentAmmoInClip--;
-
-    if (shootSound != null)
     {
-        audioSource.PlayOneShot(shootSound);
+        if (currentAmmoInClip <= 0) return;
+
+        // Shotgun'da sabit bekleme; diğerlerinde fireRate
+        float cooldown = weaponData.isShotgun ? weaponData.shotgunCooldown : (1f / weaponData.fireRate);
+        nextTimeToFire = Time.time + cooldown;
+
+        // Klasik shotgun davranışı: tetikte kaç saçma çıkarsa çıksın 1 mermi eksilt
+        currentAmmoInClip--;
+
+        if (shootSound != null)
+            audioSource.PlayOneShot(shootSound);
+
+        // Düşmanları sese çek
         SoundEmitter.EmitSound(transform.position, 7f);
+
+        // Hayvanları ürküt (projede mevcutsa)
+        try
+        {
+            AnimalSoundEmitter.EmitSound(
+                firePoint != null ? (Vector2)firePoint.position : (Vector2)transform.position,
+                gunshotHearingRadius,
+                gunshotFleeDuration,
+                gunshotFleeMultiplier
+            );
+        }
+        catch { /* AnimalSoundEmitter yoksa hatayı yut. */ }
+
+        if (animator != null) animator.SetTrigger("Shoot");
+
+        if (bulletPrefab != null && firePoint != null)
+        {
+            if (weaponData.isShotgun)
+                FireShotgunPellets();
+            else
+                FireSingleBullet();
+
+            // Muzzle flash
+            TryMuzzleFlash();
+        }
+
+        WeaponSlotManager.Instance.UpdateAmmoText();
     }
 
-    if (animator != null) animator.SetTrigger("Shoot");
-
-    if (bulletPrefab != null && firePoint != null)
+    private void FireSingleBullet()
     {
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
-
         var bulletScript = bullet.GetComponent<WeaponBullet>();
-        if (bulletScript != null) bulletScript.damage = weaponData.damage;
-
-        // >>> Muzzle flash
-        TryMuzzleFlash();
+        if (bulletScript != null)
+        {
+            bulletScript.damage = weaponData.damage;
+            bulletScript.owner = this.transform;
+        }
     }
 
-    WeaponSlotManager.Instance.UpdateAmmoText();
-}
+    private void FireShotgunPellets()
+    {
+        int pellets = Mathf.Max(weaponData.pelletsPerShot, 1);
+        float spread = weaponData.pelletSpreadAngle; // -spread .. +spread
 
+        // Pellets sayısına göre -spread'den +spread'e eşit dağıt
+        for (int i = 0; i < pellets; i++)
+        {
+            float t = (pellets == 1) ? 0f : i / (pellets - 1f);
+            float angle = Mathf.Lerp(-spread, spread, t);
 
+            Quaternion rot = firePoint.rotation * Quaternion.Euler(0f, 0f, angle);
+            GameObject bullet = Instantiate(bulletPrefab, firePoint.position, rot);
+
+            var bulletScript = bullet.GetComponent<WeaponBullet>();
+            if (bulletScript != null)
+            {
+                bulletScript.damage = weaponData.damage;
+                bulletScript.owner = this.transform;
+            }
+        }
+    }
 
     private void MeleeAttack()
     {
         nextTimeToFire = Time.time + 1f / weaponData.fireRate;
 
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(firePoint.position, weaponData.attackRange, enemyLayer);
-        foreach(Collider2D enemyCollider in hitEnemies)
+        foreach (Collider2D enemyCollider in hitEnemies)
         {
             // Düşmana hasar verme mantığı...
         }
     }
-    
+
     public void PlayEmptyClipSound()
     {
         if (emptyClipSound != null && !audioSource.isPlaying)
-        {
             audioSource.PlayOneShot(emptyClipSound);
-        }
     }
+
     // Şarjör değiştirme Coroutine'i
     public IEnumerator Reload()
     {
@@ -126,48 +175,43 @@ public class PlayerWeapon : MonoBehaviour
         Debug.Log($"Reloading {weaponData.weaponName}...");
 
         if (reloadSound != null)
-        {
             audioSource.PlayOneShot(reloadSound);
-        }
 
         yield return new WaitForSeconds(weaponData.reloadTime);
 
         WeaponSlotManager.Instance.FinishReload();
-
         isReloading = false;
-        
+
         Debug.Log("Reload finished.");
     }
 
     private void TryMuzzleFlash()
-{
-    if (muzzleFlash == null || firePoint == null) return;
+    {
+        if (muzzleFlash == null || firePoint == null) return;
 
-    // MuzzleLight'ı tam namlu ucuna taşı (emin olmak için)
-    muzzleFlash.transform.position = firePoint.position;
+        // MuzzleLight'ı tam namlu ucuna taşı
+        muzzleFlash.transform.position = firePoint.position;
 
-    // Aynı anda birden fazla coroutine çalışmasın
-    if (muzzleFlashCo != null) StopCoroutine(muzzleFlashCo);
-    muzzleFlashCo = StartCoroutine(MuzzleFlashRoutine());
-}
+        if (muzzleFlashCo != null) StopCoroutine(muzzleFlashCo);
+        muzzleFlashCo = StartCoroutine(MuzzleFlashRoutine());
+    }
 
-private IEnumerator MuzzleFlashRoutine()
-{
-    // Yoğunluk değişken olabilir; isterseniz bir "pop" efekti gibi kısa yükselip düşürtebilirsiniz.
-    float originalIntensity = muzzleFlash.intensity;
+    private IEnumerator MuzzleFlashRoutine()
+    {
+        float originalIntensity = muzzleFlash.intensity;
 
-    muzzleFlash.intensity = muzzleFlashIntensity;
-    muzzleFlash.enabled = true;
+        muzzleFlash.intensity = muzzleFlashIntensity;
+        muzzleFlash.enabled = true;
 
-    yield return new WaitForSeconds(muzzleFlashDuration);
+        yield return new WaitForSeconds(muzzleFlashDuration);
 
-    muzzleFlash.enabled = false;
-    muzzleFlash.intensity = originalIntensity;
-    muzzleFlashCo = null;
-}
+        muzzleFlash.enabled = false;
+        muzzleFlash.intensity = originalIntensity;
+        muzzleFlashCo = null;
+    }
 
     // Yardımcı Fonksiyonlar
     public void SetAmmoInClip(int amount) => currentAmmoInClip = amount;
     public int GetCurrentAmmoInClip() => currentAmmoInClip;
-    public bool IsReloading() => isReloading;
+    public bool IsReloading() => isReloading;
 }

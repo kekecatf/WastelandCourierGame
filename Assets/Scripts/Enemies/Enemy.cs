@@ -126,7 +126,7 @@ void Awake() {
                 var go = GameObject.FindGameObjectWithTag("Player");
                 if (go != null) caravan = go.transform;
             }
-            target = player;
+            target = caravan;
         }
 
         // (Opsiyonel) ortam sesleri için
@@ -151,14 +151,21 @@ void Awake() {
             }
         }
     }
+    
+    void LateUpdate() {
+    Vector3 scale = transform.localScale;
+    scale.y = Mathf.Abs(scale.y); // her zaman pozitif olsun
+    transform.localScale = scale;
+}
+
 
 public void ShowDamage(int amount)
-{
-    damageText.text = $"-{amount}";
-    damageText.color = Color.red;
-    damageText.gameObject.SetActive(true);
-    StartCoroutine(FadeOutText());
-}
+    {
+        damageText.text = $"-{amount}";
+        damageText.color = Color.red;
+        damageText.gameObject.SetActive(true);
+        StartCoroutine(FadeOutText());
+    }
 
 private System.Collections.IEnumerator FadeOutText()
 {
@@ -226,29 +233,31 @@ private System.Collections.IEnumerator MoveToSoundPosition(Vector2 soundPosition
             target = caravan;
     }
 
-    if (!externalMovement && target != null)
-    {
-        float distanceToTarget = Vector2.Distance(transform.position, target.position);
-        float stopDistance = (enemyType == EnemyType.Normal || enemyType == EnemyType.Fast) ? damageRangeToPlayer : damageRangeToCaravan;
-
-        if (distanceToTarget > stopDistance)
+        if (!externalMovement && target != null)
         {
-            Vector2 dir = (target.position - transform.position).normalized;
-            transform.position += (Vector3)(dir * Time.deltaTime * moveSpeed);
+            float distanceToTarget = Vector2.Distance(transform.position, target.position);
+            float stopDistance = (enemyType == EnemyType.Normal || enemyType == EnemyType.Fast) ? damageRangeToPlayer : damageRangeToCaravan;
 
-            animator.SetFloat("Speed", 1f);
-            animator.SetFloat("MoveX", dir.x);
-            animator.SetFloat("MoveY", dir.y);
-            lastMoveDir = dir;
-        }
-        else
-        {
-            animator.SetFloat("Speed", 0f);
-        }
+            if (distanceToTarget > stopDistance)
+            {
+                Vector2 dir = (target.position - transform.position).normalized;
+                transform.position += (Vector3)(dir * Time.deltaTime * moveSpeed);
 
-        animator.SetFloat("LastMoveX", lastMoveDir.x);
-        animator.SetFloat("LastMoveY", lastMoveDir.y);
+                animator.SetFloat("Speed", 1f);
+                animator.SetFloat("MoveX", dir.x);
+                animator.SetFloat("MoveY", dir.y);
+                lastMoveDir = dir;
+            }
+            else
+            {
+                animator.SetFloat("Speed", 0f);
+            }
+
+            animator.SetFloat("LastMoveX", lastMoveDir.x);
+            animator.SetFloat("LastMoveY", lastMoveDir.y);
+        
     }
+GetComponent<SpriteRenderer>().flipY = false;
 
     
 }
@@ -280,6 +289,12 @@ private System.Collections.IEnumerator MoveToSoundPosition(Vector2 soundPosition
 
         if (currentHealth <= 0)
         {
+            if (enemyType == EnemyType.Exploder)
+    {
+        Explode();
+        return;
+    }
+
             animator.SetTrigger("Die");
             Debug.Log("Enemy should die now!");
 

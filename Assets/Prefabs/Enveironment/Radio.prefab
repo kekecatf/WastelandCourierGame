@@ -63,8 +63,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69d90271c1be44a4db5f4b398005714e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  noteText: "Buradan yay\u0131n al\u0131n\u0131yor... frekans bozulmu\u015F gibi..."
-  radioClip: {fileID: 8300000, guid: b98c374055f98b14fb41fddccb8c395d, type: 3}
+  noteTexts:
+  - "-Ahmet-\nSan\u0131r\u0131m yak\u0131t\u0131n bitmi\u015F... Yak\u0131t\u0131n
+    bitti\u011Finde ne yapman gerekti\u011Fini biliyorsundur, de\u011Fil mi?"
+  - "-Ahmet-\nGece olmadan savunman\u0131 g\xFC\xE7lendirmek i\xE7in kaynak toplamaya
+    ba\u015Flamal\u0131s\u0131n."
+  radioClips:
+  - {fileID: 8300000, guid: b98c374055f98b14fb41fddccb8c395d, type: 3}
+  - {fileID: 8300000, guid: db33c2bcc0c79fe47a80de023005ff4b, type: 3}
 --- !u!212 &7870225349860778663
 SpriteRenderer:
   m_ObjectHideFlags: 0

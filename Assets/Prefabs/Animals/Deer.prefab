@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7762771144491363035}
   - component: {fileID: 8940344801124119444}
   - component: {fileID: 7909195168690622640}
-  - component: {fileID: 3491623956099833159}
+  - component: {fileID: 4586568880297652273}
   m_Layer: 9
   m_Name: Deer
   m_TagString: Animal
@@ -103,6 +103,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ce5a1e2acf234a4aa19c98355ae6af1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  dirDeadzone: 0.15
+  axisHysteresis: 0.1
   animalType: Geyik
   maxHealth: 70
   moveSpeed: 2
@@ -113,6 +115,7 @@ MonoBehaviour:
   meatPrefab: {fileID: 8137549580499720014, guid: c3b953d4d1a6afe48bdfa61bc2652736, type: 3}
   hidePrefab: {fileID: 5739589301864148472, guid: 2b748b855bca4a74d8d1a8aed8edd0d6, type: 3}
   hpBarPrefab: {fileID: 703183713388882252, guid: 5c650d700cb2738419891bde02ea05ab, type: 3}
+  minScareCooldown: 0.5
 --- !u!61 &8940344801124119444
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -186,16 +189,25 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
---- !u!114 &3491623956099833159
-MonoBehaviour:
+--- !u!95 &4586568880297652273
+Animator:
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2881160212814549230}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b8876f339876d1a42be02a65a0530f16, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  yOffset: 0
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: b349c0922d766df47b42d482b4730238, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

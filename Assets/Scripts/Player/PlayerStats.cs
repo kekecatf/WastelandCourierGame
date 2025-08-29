@@ -47,6 +47,10 @@ public class PlayerStats : MonoBehaviour
     public int hungerDecreaseAmount = 1;
     private float hungerTimer;
 
+    [Header("Audio")]
+    public AudioClip hurtClip;   // Inspector'dan atayacağın ses
+    private AudioSource audioSource;
+
     // XP/Level
     public int currentXP = 0;
     public int level = 1;
@@ -68,6 +72,16 @@ public class PlayerStats : MonoBehaviour
         hungerTimer = hungerDecreaseInterval;
         currentHealth = maxHealth;
         onHealthChanged?.Invoke(currentHealth, maxHealth);
+    }
+
+    void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+
+        // Sesleri AudioManager üzerinden miksere bağlamak istersen:
+        AudioManager.Instance?.RouteToSFX(audioSource);
     }
 
     void Update()
@@ -92,6 +106,10 @@ public class PlayerStats : MonoBehaviour
 
         currentHealth = Mathf.Max(0, currentHealth - amount);
         onHealthChanged?.Invoke(currentHealth, maxHealth);
+
+        // 🔊 Hasar sesi oynat
+        if (hurtClip != null && audioSource != null)
+            audioSource.PlayOneShot(hurtClip);
 
         if (currentHealth <= 0) Die();
 

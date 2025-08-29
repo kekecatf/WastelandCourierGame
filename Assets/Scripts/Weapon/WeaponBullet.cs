@@ -9,6 +9,11 @@ public class WeaponBullet : MonoBehaviour
     public int damage = 10;
     private Rigidbody2D rb;
 
+    public Transform owner;  // PlayerWeapon atar
+
+public float fleeOnHitDuration = 3.5f;
+public float fleeOnHitMultiplier = 2.2f;
+
     void Awake()
     {
         // Rigidbody2D referansını en başta al, daha performanslıdır.
@@ -26,23 +31,23 @@ public class WeaponBullet : MonoBehaviour
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
+{
+    if (collision.CompareTag("Player") || collision.CompareTag("Bullet")) return;
+
+    Enemy enemy = collision.GetComponent<Enemy>();
+    if (enemy != null) enemy.TakeDamage(damage);
+
+    Animal animal = collision.GetComponent<Animal>();
+    if (animal != null)
     {
-        if (collision.CompareTag("Player") || collision.CompareTag("Bullet"))
-            return;
+        // 📌 Çarpma noktasından (veya oyuncudan) uzağa kaç
+        Vector2 threatPos = (owner != null) ? (Vector2)owner.position : (Vector2)transform.position;
+        animal.Scare(threatPos, fleeOnHitDuration, fleeOnHitMultiplier);
 
-        Enemy enemy = collision.GetComponent<Enemy>();
-        if (enemy != null)
-        {
-            enemy.TakeDamage(damage);
-        }
-
-        Animal animal = collision.GetComponent<Animal>();
-        if (animal != null)
-        {
-            animal.TakeDamage(damage);
-        }
-
-        Destroy(gameObject);
+        animal.TakeDamage(damage);
     }
+
+    Destroy(gameObject);
+}
 
 }

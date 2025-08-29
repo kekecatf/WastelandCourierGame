@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 1901054954283515642}
   - component: {fileID: 6325730467235097454}
   - component: {fileID: 5883423141642112396}
-  - component: {fileID: 8008677816753012251}
   - component: {fileID: 408433156941147806}
   - component: {fileID: 1893863080789037764}
   - component: {fileID: 5332541922574428768}
@@ -94,6 +93,8 @@ MonoBehaviour:
   - {fileID: 0}
   baseEnemyCount: 5
   enemyCountIncreasePerDay: 2
+  spawnZoneManager: {fileID: 0}
+  extraWanderGroups: []
 --- !u!114 &5883423141642112396
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -108,22 +109,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pausePanel: {fileID: 0}
   settingsPanel: {fileID: 0}
---- !u!114 &8008677816753012251
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4332568536927215517}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bcdbc420cdae4eb4898ad039373d2136, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  fuelPrefab: {fileID: 6229367010271102883, guid: 345849520f44911499462f6304ae8009, type: 3}
-  fuelCount: 4
-  spawnMin: {x: -10, y: -5}
-  spawnMax: {x: 10, y: 5}
 --- !u!114 &408433156941147806
 MonoBehaviour:
   m_ObjectHideFlags: 0

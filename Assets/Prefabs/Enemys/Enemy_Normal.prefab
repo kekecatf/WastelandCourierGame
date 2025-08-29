@@ -132,7 +132,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+  damageText: {fileID: 0}
   hpBarPrefab: {fileID: 703183713388882252, guid: 5c650d700cb2738419891bde02ea05ab, type: 3}
+  damagePopupPrefab: {fileID: 3553136851630402271, guid: 7e3c86b9b0ea2264d849b3ef39c811d0, type: 3}
   goldPrefab: {fileID: 452538406127782152, guid: 96dd3e9be42af944bb7189cfcd228730, type: 3}
   blueprintPrefabs:
   - {fileID: 7092412709379881292, guid: 917825acf1010e44db1845a4722bfed1, type: 3}
@@ -156,6 +158,9 @@ MonoBehaviour:
     m_Bits: 0
   contactDamageInterval: 1
   damageToPlayer: 1
+  externalMovement: 0
+  damageRangeToPlayer: 5
+  damageRangeToCaravan: 5
   target: {fileID: 6370573785070047475, guid: 07166245952cd734daa010f4526e861c, type: 3}
 --- !u!95 &-8429525953165891100
 Animator:
