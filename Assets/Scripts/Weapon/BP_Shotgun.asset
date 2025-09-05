@@ -16,7 +16,7 @@ MonoBehaviour:
   description: 
   weaponIcon: {fileID: 4099191518589774541, guid: 8d28fad03878d464fb4e8f1f05844664, type: 3}
   weaponData: {fileID: 11400000, guid: 18378fe0a73d11443b1e040e6125cbf7, type: 2}
-  weaponSlotIndexToUnlock: 6
+  weaponSlotIndexToUnlock: 3
   requiredStone: 0
   requiredWood: 0
   requiredScrapMetal: 0
