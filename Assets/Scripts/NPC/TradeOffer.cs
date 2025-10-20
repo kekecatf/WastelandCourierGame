@@ -15,6 +15,7 @@ public class TradeOffer : ScriptableObject
     public int requiredScrapMetal = 0;
 
     // Et ve deri gibi ek maliyetler:
+    public int requiredAmmo = 0;
     public int requiredMeat = 0;
     public int requiredDeerHide = 0;
     public int requiredRabbitHide = 0;

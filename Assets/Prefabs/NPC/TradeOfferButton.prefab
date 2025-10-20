@@ -116,9 +116,11 @@ MonoBehaviour:
   - resource: 5
     sprite: {fileID: 8391118260101108325, guid: 2acf16eb47c7d034ea7cf2e443c55495, type: 3}
   - resource: 9
-    sprite: {fileID: 0}
+    sprite: {fileID: 7197166346137737418, guid: 05c1449a5e92e2541ad47673af16f37f, type: 3}
   - resource: 3
     sprite: {fileID: 2061463952765711529, guid: 51d7a088f00869b4f9079428e8bcccb6, type: 3}
+  - resource: 10
+    sprite: {fileID: 7099938498034595887, guid: 8fdc62a739e828a4c961fa8c5a6424b4, type: 3}
   fallbackSprite: {fileID: 0}
   rowMinHeight: 240
   offerTextSlot: {fileID: 0}

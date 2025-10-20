@@ -9,6 +9,7 @@ public enum ResourceType
     CookedMeat,
     Arrow,
     Spear,
-    Herb
+    Herb,
+    Ammo
 
 }

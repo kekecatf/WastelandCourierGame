@@ -106,6 +106,12 @@ MonoBehaviour:
   amount: 1
   hitsRequired: 3
   hitCooldown: 1
+  ammoToActiveSlot: 0
+  ammoTargetSlotIndex: 0
+  ammoAmountAsPercentOfMax: 1
+  ammoPercentOfMax: 0.25
+  ammoFixedAmount: 12
+  clampToMaxCapacity: 1
   normalSprite: {fileID: -2961232818638073087, guid: 45c8df68d02a9e84ea094dfee81dfcd0, type: 3}
   highlightedSprite: {fileID: -1622388726588670532, guid: d67e7bd36f2c1ee4b917bae14ab0d223, type: 3}
 --- !u!61 &2228147992480742636

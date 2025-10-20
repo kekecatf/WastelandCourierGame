@@ -132,13 +132,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 100
+  damageText: {fileID: 0}
   hpBarPrefab: {fileID: 703183713388882252, guid: 5c650d700cb2738419891bde02ea05ab, type: 3}
+  damagePopupPrefab: {fileID: 0}
   goldPrefab: {fileID: 452538406127782152, guid: 96dd3e9be42af944bb7189cfcd228730, type: 3}
   blueprintPrefabs:
   - {fileID: 7092412709379881292, guid: 917825acf1010e44db1845a4722bfed1, type: 3}
   enemyType: 1
   moveSpeed: 2
   damageToCaravan: 1
+  ammoPickupPrefab: {fileID: 6150571164243365950, guid: be05de1dea767c842af694d9cd336b97, type: 3}
   ambientSounds:
   - {fileID: 8300000, guid: 0b6c39d602040294ea0289f4f5350e41, type: 3}
   hurtSounds: []
@@ -156,6 +159,9 @@ MonoBehaviour:
     m_Bits: 0
   contactDamageInterval: 1
   damageToPlayer: 1
+  externalMovement: 0
+  damageRangeToPlayer: 5
+  damageRangeToCaravan: 5
   target: {fileID: 6370573785070047475, guid: 07166245952cd734daa010f4526e861c, type: 3}
 --- !u!95 &7676543833574890051
 Animator:

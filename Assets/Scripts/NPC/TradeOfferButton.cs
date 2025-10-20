@@ -38,6 +38,9 @@ public class TradeOfferButton : MonoBehaviour
 
     // 🔹 Prefab içindeki Text'i buraya drag&drop yap
     [SerializeField] private TextMeshProUGUI offerTextSlot;
+    [Header("Sprites: Resources")]
+    
+
     private TextMeshProUGUI offerTextInstance;
 
 
@@ -57,29 +60,29 @@ public class TradeOfferButton : MonoBehaviour
 
         EnsureOfferText(); // ✅ ÇOCUK Text’i hazırla/konumlandır
 
-         ApplyRowLayout();  // ⬅️ ekle
+        ApplyRowLayout();  // ⬅️ ekle
     }
 
     private void ApplyRowLayout()
-{
-    // 1) Üst parent'taki VerticalLayoutGroup'un spacing'ini 'gap' ile ayarla
-    var vlg = GetComponentInParent<VerticalLayoutGroup>();
-    if (vlg != null)
     {
-        vlg.spacing = gap;                 // ⬅️ satırlar arası boşluk
-        vlg.childForceExpandHeight = false;
-        vlg.childControlHeight = true;     // preferredHeight'i dikkate alsın
+        // 1) Üst parent'taki VerticalLayoutGroup'un spacing'ini 'gap' ile ayarla
+        var vlg = GetComponentInParent<VerticalLayoutGroup>();
+        if (vlg != null)
+        {
+            vlg.spacing = gap;                 // ⬅️ satırlar arası boşluk
+            vlg.childForceExpandHeight = false;
+            vlg.childControlHeight = true;     // preferredHeight'i dikkate alsın
+        }
+
+        // 2) Bu buton satırının yüksekliğini belirle (LayoutElement ile)
+        var le = GetComponent<LayoutElement>();
+        if (le == null) le = gameObject.AddComponent<LayoutElement>();
+
+        // Satır yüksekliği: textHeight + üst/alt pay + istersen gap
+        float h = Mathf.Max(rowMinHeight, textHeight + gap * 2f);
+        le.minHeight = h;
+        le.preferredHeight = h;
     }
-
-    // 2) Bu buton satırının yüksekliğini belirle (LayoutElement ile)
-    var le = GetComponent<LayoutElement>();
-    if (le == null) le = gameObject.AddComponent<LayoutElement>();
-
-    // Satır yüksekliği: textHeight + üst/alt pay + istersen gap
-    float h = Mathf.Max(rowMinHeight, textHeight + gap * 2f);
-    le.minHeight = h;
-    le.preferredHeight = h;
-}
 
 
     private void EnsureOfferText()
@@ -123,6 +126,7 @@ public class TradeOfferButton : MonoBehaviour
             if (offer.requiredDeerHide > 0) costText += $", {offer.requiredDeerHide} Geyik Derisi";
             if (offer.requiredRabbitHide > 0) costText += $", {offer.requiredRabbitHide} Tavşan Derisi";
             if (offer.requiredHerb > 0) costText += $", {offer.requiredHerb} Şifalı Ot";
+            if (offer.requiredAmmo > 0) costText += $", {offer.requiredAmmo} Mermi";
 
             string rewardText = currentOffer.rewardKind == RewardKind.WeaponPart
                 ? $"Verilen: {offer.amountToGive} x {offer.partToGive}"
@@ -139,7 +143,8 @@ public class TradeOfferButton : MonoBehaviour
             stats.GetResourceAmount("Meat") >= offer.requiredMeat &&
             stats.GetResourceAmount("DeerHide") >= offer.requiredDeerHide &&
             stats.GetResourceAmount("RabbitHide") >= offer.requiredRabbitHide &&
-            stats.GetResourceAmount("Herb") >= offer.requiredHerb;
+            stats.GetResourceAmount("Herb") >= offer.requiredHerb &&
+            stats.GetResourceAmount("Ammo") >= offer.requiredAmmo;
 
         tradeButton.interactable = canAfford;
         tradeButton.onClick.RemoveAllListeners();
@@ -175,16 +180,24 @@ public class TradeOfferButton : MonoBehaviour
     }
 
     private void ApplyIconForOffer(TradeOffer offer)
-    {
-        if (!iconImage) return;
-        Sprite s = null;
-        if (offer.rewardKind == RewardKind.WeaponPart) partMap?.TryGetValue(offer.partToGive, out s);
-        else if (offer.rewardKind == RewardKind.Resource) resourceMap?.TryGetValue(offer.resourceToGive, out s);
+{
+    if (!iconImage) return;
+    Sprite s = null;
 
-        iconImage.sprite = s ? s : fallbackSprite;
-        iconImage.enabled = (iconImage.sprite != null);
-        if (iconImage.enabled) iconImage.preserveAspect = true;
+    if (offer.rewardKind == RewardKind.WeaponPart)
+    {
+        partMap?.TryGetValue(offer.partToGive, out s);
     }
+    else if (offer.rewardKind == RewardKind.Resource)
+    {
+        resourceMap?.TryGetValue(offer.resourceToGive, out s);
+    }
+
+    iconImage.sprite = s ? s : fallbackSprite;
+    iconImage.enabled = (iconImage.sprite != null);
+    if (iconImage.enabled) iconImage.preserveAspect = true;
+}
+
 
     private void OnTradeClicked()
     {

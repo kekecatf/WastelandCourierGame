@@ -2,10 +2,19 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using WeaponInstance = CaravanInventory.WeaponInstance;  // en başa ekle
 
 [RequireComponent(typeof(AudioSource))]
 public class PlayerWeapon : MonoBehaviour
 {
+
+    [Header("Durability")]
+    [SerializeField] private int durabilityCostPerShot = 1;
+    [SerializeField] private int durabilityCostPerMelee = 1;
+
+    private WeaponDurability durability;
+
+
     // --- INSPECTOR'DA ATANACAK ALANLAR ---
     [Header("Weapon Configuration")]
     public WeaponData weaponData;   // WeaponData içinde: isShotgun, pelletsPerShot, pelletSpreadAngle, shotgunCooldown beklenir.
@@ -49,7 +58,17 @@ public class PlayerWeapon : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         animator = GetComponentInChildren<Animator>();
         if (muzzleFlash != null) muzzleFlash.enabled = false;
+
+        // Durability component'i bu GO'da değilse parent'ta da arayalım
+        durability = GetComponent<WeaponDurability>() ?? GetComponentInParent<WeaponDurability>();
     }
+
+    private void ApplyDurabilityOnUse(bool isRanged)
+    {
+        if (durability == null) return;                 // component yoksa sessizce geç
+        durability.LoseDurability(isRanged ? durabilityCostPerShot : durabilityCostPerMelee);
+    }
+
 
     private void OnEnable()
     {
@@ -72,13 +91,25 @@ public class PlayerWeapon : MonoBehaviour
             RangedAttack();
     }
 
+
+
     private void RangedAttack()
     {
         if (currentAmmoInClip <= 0) return;
 
+        int cost = weaponData.isShotgun ? Mathf.Max(2, durabilityCostPerShot) : durabilityCostPerShot;
+        durability.LoseDurability(cost);
+
+
         // Shotgun'da sabit bekleme; diğerlerinde fireRate
-        float cooldown = weaponData.isShotgun ? weaponData.shotgunCooldown : (1f / weaponData.fireRate);
-        nextTimeToFire = Time.time + cooldown;
+       float cooldown =
+    weaponData.isShotgun ? weaponData.shotgunCooldown :
+    weaponData.isSniper  ? weaponData.sniperCooldown  :
+    (1f / weaponData.fireRate);
+
+    nextTimeToFire = Time.time + cooldown;   // <<— BUNU EKLE
+
+
 
         // Klasik shotgun davranışı: tetikte kaç saçma çıkarsa çıksın 1 mermi eksilt
         currentAmmoInClip--;
@@ -115,6 +146,9 @@ public class PlayerWeapon : MonoBehaviour
         }
 
         WeaponSlotManager.Instance.UpdateAmmoText();
+
+        ApplyDurabilityOnUse(true);
+
     }
 
     private void FireSingleBullet()
@@ -160,6 +194,9 @@ public class PlayerWeapon : MonoBehaviour
         {
             // Düşmana hasar verme mantığı...
         }
+
+        ApplyDurabilityOnUse(true);
+
     }
 
     public void PlayEmptyClipSound()

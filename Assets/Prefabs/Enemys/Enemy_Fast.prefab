@@ -132,13 +132,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 50
+  damageText: {fileID: 0}
   hpBarPrefab: {fileID: 703183713388882252, guid: 5c650d700cb2738419891bde02ea05ab, type: 3}
+  damagePopupPrefab: {fileID: 0}
   goldPrefab: {fileID: 452538406127782152, guid: 96dd3e9be42af944bb7189cfcd228730, type: 3}
   blueprintPrefabs:
   - {fileID: 7092412709379881292, guid: 917825acf1010e44db1845a4722bfed1, type: 3}
   enemyType: 3
   moveSpeed: 2
   damageToCaravan: 1
+  ammoPickupPrefab: {fileID: 6150571164243365950, guid: be05de1dea767c842af694d9cd336b97, type: 3}
   ambientSounds:
   - {fileID: 8300000, guid: 3be02a8ee5d579441b0b438669263c3a, type: 3}
   hurtSounds: []
@@ -156,6 +159,9 @@ MonoBehaviour:
     m_Bits: 0
   contactDamageInterval: 1
   damageToPlayer: 1
+  externalMovement: 0
+  damageRangeToPlayer: 5
+  damageRangeToCaravan: 5
   target: {fileID: 6370573785070047475, guid: 07166245952cd734daa010f4526e861c, type: 3}
 --- !u!95 &-2921067208854207943
 Animator:
@@ -167,7 +173,7 @@ Animator:
   m_GameObject: {fileID: 5687110353871480299}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 7f8e7890bdd5b59448a5e030a5c7c4a9, type: 2}
+  m_Controller: {fileID: 9100000, guid: 2707cde078912954395c658c9abf3771, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using TMPro;
 using System.Collections.Generic;
+using WeaponInstance = CaravanInventory.WeaponInstance; // Adım 0
 
 public class WeaponSlotManager : MonoBehaviour
 {
@@ -31,6 +32,16 @@ public class WeaponSlotManager : MonoBehaviour
     public int activeSlotIndex = -1;
 
     private bool emptyClipSoundPlayedThisPress = false;
+
+    [Header("Slots")]
+    public WeaponInstance[] slots;  // sende zaten varsa bunu kullan
+    public int activeIndex = 0;     // aktif slot indeksi
+
+    // Instance -> sahnedeki silah GameObject eşlemesi
+    private readonly Dictionary<WeaponInstance, GameObject> goByInstance = new();
+
+    // === Yardımcılar ===
+    public bool IsActiveSlotEmpty() => slots == null || slots.Length == 0 || slots[activeIndex] == null;
 
     // --- Slot-bazlı mermi durumu: TEK KAYNAK ---
     private int[] ammoInClips;
@@ -66,6 +77,55 @@ public class WeaponSlotManager : MonoBehaviour
         InitializeAmmo(); // sadece ilk dolum
     }
 
+    public void EquipIntoActive(WeaponInstance inst)
+    {
+        // Burada sadece "hangi instance aktif" bilgisini tutuyoruz.
+        // GO ile eşleştirme RegisterEquippedGO'da yapılacak.
+        slots[activeIndex] = inst;
+
+        // UI/ikon güncellemen varsa burada çağır.
+        // UpdateHotbarUI();
+    }
+
+    /// <summary> Silah sahneye konunca bu metodu ÇAĞIR. Durability event'ini bağlar. </summary>
+    public void RegisterEquippedGO(WeaponInstance inst, GameObject go)
+    {
+        if (inst == null || go == null) return;
+
+        goByInstance[inst] = go;
+
+        var d = go.GetComponent<WeaponDurability>();
+        if (d != null)
+        {
+            // Çifte kayıt olmasın:
+            d.onBroken.RemoveAllListeners();
+            d.onBroken.AddListener(() => OnWeaponBroken(inst));
+        }
+    }
+
+      /// <summary> Silah kırılınca slotu boşalt ve eşleşmeyi temizle. </summary>
+    private void OnWeaponBroken(WeaponInstance inst)
+    {
+        if (slots != null)
+        {
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i] == inst)
+                {
+                    slots[i] = null;           // slot artık boş
+                    if (i == activeIndex)
+                    {
+                        // İstersen burada "elde silah yok" anim/ikon temizliği yap.
+                        // ClearEquippedVisuals();
+                    }
+                    break;
+                }
+            }
+        }
+
+        goByInstance.Remove(inst);
+    }
+
     void Start()
     {
         foreach (var slot in weaponSlots)
@@ -73,6 +133,34 @@ public class WeaponSlotManager : MonoBehaviour
 
         SwitchToSlot(0);
     }
+
+    public void HandleWeaponBroken(GameObject brokenGO)
+{
+    // Bu GO hangi slottaki fiziksel silah?
+    int idx = System.Array.IndexOf(weaponSlots, brokenGO);
+    if (idx < 0) return;
+
+    // Blueprint’i ve mermiyi sıfırla -> slot gerçekten BOŞ kabul edilsin
+    if (equippedBlueprints != null && idx < equippedBlueprints.Length)
+        equippedBlueprints[idx] = null;
+
+    if (ammoInClips != null && idx < ammoInClips.Length)      ammoInClips[idx] = 0;
+    if (totalReserveAmmo != null && idx < totalReserveAmmo.Length) totalReserveAmmo[idx] = 0;
+
+    // Silah GO’sunu gizle (senin mimaride slot GO’ları kalıcı)
+    if (weaponSlots[idx] != null) weaponSlots[idx].SetActive(false);
+
+    // Aktif slotsa UI’ı temizle
+    if (idx == activeSlotIndex)
+    {
+        activeWeapon = null;
+        UpdateUI();                    // mevcut metodun
+        WeaponSlotUI.Instance?.UpdateHighlight(activeSlotIndex);
+    }
+
+    Debug.Log($"[WeaponBroken] Slot {idx} boşaltıldı.");
+}
+
 
     void Update()
     {
@@ -169,25 +257,81 @@ public class WeaponSlotManager : MonoBehaviour
     }
 
     public void EquipBlueprintIntoActiveSlot(WeaponBlueprint bp)
+    {
+        if (activeSlotIndex < 0) { Debug.LogWarning("Aktif slot yok."); return; }
+
+        if (activeWeapon != null && activeWeapon.IsReloading())
+            activeWeapon.StopAllCoroutines();
+
+        // Doğru dizi: equippedBlueprints
+        equippedBlueprints[activeSlotIndex] = bp;
+
+        // Sadece weaponData'yı değiştir ve mevcut state'i uygula (FULL yok)
+        ApplyEquippedBlueprintToActiveSlot();
+
+        if (activeWeapon != null && activeWeapon.weaponData.clipSize > 0)
+            activeWeapon.SetAmmoInClip(ammoInClips[activeSlotIndex]);
+
+        UpdateUI();
+        WeaponSlotUI.Instance?.RefreshIconForSlot(activeSlotIndex);
+        WeaponSlotUI.Instance?.UpdateHighlight(activeSlotIndex);
+
+        if (activeSlotIndex < 0) return;
+
+        bool wasEmpty = (GetBlueprintForSlot(activeSlotIndex) == null);
+        equippedBlueprints[activeSlotIndex] = bp;
+
+        ApplyEquippedBlueprintToActiveSlot();
+
+        if (wasEmpty) // sadece boş slota yeni silah takıldıysa full durability
+        {
+            var go = weaponSlots[activeSlotIndex];
+            var wd = go ? go.GetComponent<WeaponDurability>() : null;
+            if (wd != null) wd.RefillToMax();
+        }
+    }
+
+// Rezerv mermi ekle (tek slot)
+public void AddReserveAmmoToSlot(int slotIndex, int amount, bool clampToMax = false)
 {
-    if (activeSlotIndex < 0) { Debug.LogWarning("Aktif slot yok."); return; }
+    if (totalReserveAmmo == null || slotIndex < 0 || slotIndex >= totalReserveAmmo.Length) return;
 
-    if (activeWeapon != null && activeWeapon.IsReloading())
-        activeWeapon.StopAllCoroutines();
+    // O slotta silah yoksa eklemeyelim (istersen burada bir genel havuz mantığı kurabilirsin)
+    if (GetBlueprintForSlot(slotIndex) == null)
+    {
+        Debug.Log("[AmmoPickup] Bu slota takılı silah yok, ammo eklenmedi.");
+        return;
+    }
 
-    // Doğru dizi: equippedBlueprints
-    equippedBlueprints[activeSlotIndex] = bp;
+    int before = totalReserveAmmo[slotIndex];
+    totalReserveAmmo[slotIndex] = Mathf.Max(0, before + amount);
 
-    // Sadece weaponData'yı değiştir ve mevcut state'i uygula (FULL yok)
-    ApplyEquippedBlueprintToActiveSlot();
+    if (clampToMax)
+    {
+        int cap = GetBlueprintForSlot(slotIndex)?.weaponData?.maxAmmoCapacity ?? int.MaxValue;
+        totalReserveAmmo[slotIndex] = Mathf.Min(totalReserveAmmo[slotIndex], cap);
+    }
 
-    if (activeWeapon != null && activeWeapon.weaponData.clipSize > 0)
-        activeWeapon.SetAmmoInClip(ammoInClips[activeSlotIndex]);
-
-    UpdateUI();
-    WeaponSlotUI.Instance?.RefreshIconForSlot(activeSlotIndex);
-    WeaponSlotUI.Instance?.UpdateHighlight(activeSlotIndex);
+    if (slotIndex == activeSlotIndex) UpdateUI();
+    Debug.Log($"[AmmoPickup] slot {slotIndex} reserve: {before} -> {totalReserveAmmo[slotIndex]} (+{amount})");
 }
+
+// Aktif slota kısayol
+public void AddReserveAmmoToActive(int amount, bool clampToMax = false)
+{
+    AddReserveAmmoToSlot(activeSlotIndex, amount, clampToMax);
+}
+
+
+    public void RefillDurabilityForSlot(int slotIndex)
+    {
+        if (weaponSlots == null || slotIndex < 0 || slotIndex >= weaponSlots.Length) return;
+        var go = weaponSlots[slotIndex];
+        if (go == null) return;
+
+        var wd = go.GetComponent<WeaponDurability>();
+        if (wd != null) wd.RefillToMax();
+    }
 
 
     private void SaveActiveClipAmmo()

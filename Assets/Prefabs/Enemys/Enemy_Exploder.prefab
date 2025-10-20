@@ -234,6 +234,7 @@ MonoBehaviour:
   enemyType: 2
   moveSpeed: 2
   damageToCaravan: 1
+  ammoPickupPrefab: {fileID: 6150571164243365950, guid: be05de1dea767c842af694d9cd336b97, type: 3}
   ambientSounds:
   - {fileID: 8300000, guid: 342cf5fb003dfc94ebbb5ad6c7fc47a3, type: 3}
   hurtSounds: []

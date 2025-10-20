@@ -1,5 +1,4 @@
-﻿// WeaponData.cs (SHOTGUN alanları eklenmiş)
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Weapon Data", menuName = "Weapons/Weapon Data")]
 public class WeaponData : ScriptableObject
@@ -9,7 +8,7 @@ public class WeaponData : ScriptableObject
 
     // Ortak
     public bool isAutomatic;        // Melee için basılı tutma, ranged için otomatik ateş
-    public float fireRate = 2f;     // saniyedeki atış/vuruş (shotgun'da YOK SAYILIR)
+    public float fireRate = 2f;     // saniyedeki atış/vuruş (shotgun/sniper'da YOK SAYILIR)
     public int damage;
 
     [Header("Ranged Weapon")]
@@ -21,10 +20,15 @@ public class WeaponData : ScriptableObject
     [Tooltip("Vuruşun ne kadar uzağa etki edeceği.")]
     public float attackRange = 1.5f;
 
-    // 🔽🔽🔽 Shotgun'a özel alanlar
+    // 🔽 Shotgun'a özel alanlar
     [Header("Shotgun Settings")]
-    public bool isShotgun = false;              // Bu asset bir shotgun mı?
-    [Range(1, 12)] public int pelletsPerShot = 3;      // Tek tetikte kaç saçma (3 istiyorsun)
-    [Range(0f, 45f)] public float pelletSpreadAngle = 8f; // Saçılma açısı (derece)
-    [Min(0.1f)] public float shotgunCooldown = 2.5f;   // Tetikten sonra bekleme süresi (2–3 sn)
+    public bool isShotgun = false;              
+    [Range(1, 12)] public int pelletsPerShot = 3;      
+    [Range(0f, 45f)] public float pelletSpreadAngle = 8f; 
+    [Min(0.1f)] public float shotgunCooldown = 2.5f;   
+
+    // 🔽 Sniper'a özel alanlar
+    [Header("Sniper Settings")]
+    public bool isSniper = false;
+    [Min(0.1f)] public float sniperCooldown = 3.0f;   // Sniper için özel bekleme süresi
 }

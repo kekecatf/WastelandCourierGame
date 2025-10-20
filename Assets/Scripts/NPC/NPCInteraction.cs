@@ -8,21 +8,22 @@ using UnityEngine.EventSystems;
 public class NPCInteraction : MonoBehaviour
 {
 
-    
-private readonly List<TradeOfferButton> spawned = new List<TradeOfferButton>();
+
+    private readonly List<TradeOfferButton> spawned = new List<TradeOfferButton>();
     private bool layoutDone = false;
 
     [Header("Trade Data")]
     public List<TradeOffer> tradeOffers;
 
     [Header("Layout Settings (code-driven)")]
-    public float rowSpacing  = 8f;   // satırlar arası
+    public float rowSpacing = 8f;   // satırlar arası
     public float innerSpacing = 12f; // buton ile text arası (prefab içi HLG.spacing)
 
     [Header("Layout (manual)")]
     public float topPadding = 10f;
     public float bottomPadding = 10f;
-    
+
+
 
     [Header("UI Refs")]
     public GameObject tradeUIPanel;
@@ -64,35 +65,35 @@ private readonly List<TradeOfferButton> spawned = new List<TradeOfferButton>();
         }
 
         // ✅ Content doğru yapılandırılmış mı emin ol (runtime’da güvenlik)
-       
+
     }
 
     private System.Collections.IEnumerator OpenTradePanelStable()
-{
-    // 1) UI’ı kur
-    PopulateTradeOffers();
-
-    // 2) 1 frame bekle -> layout otursun
-    yield return null;
-    Canvas.ForceUpdateCanvases();
-
-    // 3) Content’i tepeye çek
-    var contentRT = (RectTransform)tradeOffersContainer;
-    // Yalnızca Y’yi 0’la (pivot 0,1 olduğunda tepe demek)
-    contentRT.anchoredPosition = new Vector2(contentRT.anchoredPosition.x, 0f);
-
-    // 4) Scroll’u dondur ve tepeye al
-    if (tradeScrollRect != null)
     {
-        tradeScrollRect.StopMovement();
-        tradeScrollRect.velocity = Vector2.zero;
-        tradeScrollRect.verticalNormalizedPosition = 1f;
-        tradeScrollRect.inertia = false; // ister kalıcı kapat
-    }
+        // 1) UI’ı kur
+        PopulateTradeOffers();
 
-    // 5) Otomatik seçili UI temizle
-    EventSystem.current?.SetSelectedGameObject(null);
-}
+        // 2) 1 frame bekle -> layout otursun
+        yield return null;
+        Canvas.ForceUpdateCanvases();
+
+        // 3) Content’i tepeye çek
+        var contentRT = (RectTransform)tradeOffersContainer;
+        // Yalnızca Y’yi 0’la (pivot 0,1 olduğunda tepe demek)
+        contentRT.anchoredPosition = new Vector2(contentRT.anchoredPosition.x, 0f);
+
+        // 4) Scroll’u dondur ve tepeye al
+        if (tradeScrollRect != null)
+        {
+            tradeScrollRect.StopMovement();
+            tradeScrollRect.velocity = Vector2.zero;
+            tradeScrollRect.verticalNormalizedPosition = 1f;
+            tradeScrollRect.inertia = false; // ister kalıcı kapat
+        }
+
+        // 5) Otomatik seçili UI temizle
+        EventSystem.current?.SetSelectedGameObject(null);
+    }
 
     private void Update()
     {
@@ -112,125 +113,127 @@ private readonly List<TradeOfferButton> spawned = new List<TradeOfferButton>();
     }
 
     private System.Collections.IEnumerator AfterFirstFrameStabilize()
-{
-    yield return null; // 1 frame bekle (layout bitsin)
-    Canvas.ForceUpdateCanvases();
-
-    if (tradeScrollRect != null)
     {
-        tradeScrollRect.StopMovement();
-        tradeScrollRect.velocity = Vector2.zero;                 // güvence
-        tradeScrollRect.verticalNormalizedPosition = 1f;         // tekrar tepe
-        tradeScrollRect.inertia = inertiaDefault;                // eski ayara dön
-    }
+        yield return null; // 1 frame bekle (layout bitsin)
+        Canvas.ForceUpdateCanvases();
 
-    if (EventSystem.current != null)
-        EventSystem.current.SetSelectedGameObject(null);         // oto-seçimi temizle
-}
+        if (tradeScrollRect != null)
+        {
+            tradeScrollRect.StopMovement();
+            tradeScrollRect.velocity = Vector2.zero;                 // güvence
+            tradeScrollRect.verticalNormalizedPosition = 1f;         // tekrar tepe
+            tradeScrollRect.inertia = inertiaDefault;                // eski ayara dön
+        }
+
+        if (EventSystem.current != null)
+            EventSystem.current.SetSelectedGameObject(null);         // oto-seçimi temizle
+    }
 
 
     private void ToggleTradePanel()
-{
-    if (tradeUIPanel == null) return;
-
-    bool shouldOpen = !tradeUIPanel.activeSelf;
-    tradeUIPanel.SetActive(shouldOpen);
-
-    if (shouldOpen)
     {
-        StartCoroutine(OpenTradePanelStable());
-        Time.timeScale = 0f;
-        interactPromptUI?.SetActive(false);
+        if (tradeUIPanel == null) return;
+
+        bool shouldOpen = !tradeUIPanel.activeSelf;
+        tradeUIPanel.SetActive(shouldOpen);
+
+        if (shouldOpen)
+        {
+            StartCoroutine(OpenTradePanelStable());
+            Time.timeScale = 0f;
+            interactPromptUI?.SetActive(false);
+        }
+        else
+        {
+            Time.timeScale = 1f;
+            if (isPlayerNearby) interactPromptUI?.SetActive(true);
+        }
     }
-    else
-    {
-        Time.timeScale = 1f;
-        if (isPlayerNearby) interactPromptUI?.SetActive(true);
-    }
-}
 
     private void PopulateTradeOffers()
-{
-    // Scroll pozisyonunu koru
-    float prevScroll = tradeScrollRect ? tradeScrollRect.verticalNormalizedPosition : 1f;
-
-    // İLK KEZ: oluştur + konumlandır
-    if (!layoutDone)
     {
-        // Var olan çocukları temizle (sadece 1 kere)
-        for (int i = tradeOffersContainer.childCount - 1; i >= 0; i--)
-            Destroy(tradeOffersContainer.GetChild(i).gameObject);
+        // Scroll pozisyonunu koru
+        float prevScroll = tradeScrollRect ? tradeScrollRect.verticalNormalizedPosition : 1f;
 
-        float y = -topPadding;
-        for (int i = 0; i < tradeOffers.Count; i++)
+        // İLK KEZ: oluştur + konumlandır
+        if (!layoutDone)
         {
-            var go  = Instantiate(tradeOfferButtonPrefab, tradeOffersContainer);
-            var btn = go.GetComponent<TradeOfferButton>();
+            // Var olan çocukları temizle (sadece 1 kere)
+            for (int i = tradeOffersContainer.childCount - 1; i >= 0; i--)
+                Destroy(tradeOffersContainer.GetChild(i).gameObject);
 
-            // Anchor/pivot sabit
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(0f, 1f);
-            rt.anchorMax = new Vector2(0f, 1f);
-            rt.pivot     = new Vector2(0f, 1f);
+            float y = -topPadding;
+            for (int i = 0; i < tradeOffers.Count; i++)
+            {
+                var go = Instantiate(tradeOfferButtonPrefab, tradeOffersContainer);
+                var btn = go.GetComponent<TradeOfferButton>();
 
-            // YERLEŞİM YALNIZCA BURADA!
-            float h = Mathf.Max(rt.sizeDelta.y, LayoutUtility.GetPreferredHeight(rt));
-            rt.anchoredPosition = new Vector2(0f, y);
-            y -= (h + rowSpacing);
+                // Anchor/pivot sabit
+                var rt = (RectTransform)go.transform;
+                rt.anchorMin = new Vector2(0f, 1f);
+                rt.anchorMax = new Vector2(0f, 1f);
+                rt.pivot = new Vector2(0f, 1f);
 
-            spawned.Add(btn);
+                // YERLEŞİM YALNIZCA BURADA!
+                float h = Mathf.Max(rt.sizeDelta.y, LayoutUtility.GetPreferredHeight(rt));
+                rt.anchoredPosition = new Vector2(0f, y);
+                y -= (h + rowSpacing);
+
+                spawned.Add(btn);
+            }
+
+            // Content yüksekliği
+            var contentRT = (RectTransform)tradeOffersContainer;
+            float needed = -y - rowSpacing + bottomPadding;
+            if (needed < 0f) needed = 0f;
+            var sz = contentRT.sizeDelta;
+            contentRT.sizeDelta = new Vector2(sz.x, needed);
+
+            layoutDone = true;
         }
 
-        // Content yüksekliği
-        var contentRT = (RectTransform)tradeOffersContainer;
-        float needed = -y - rowSpacing + bottomPadding;
-        if (needed < 0f) needed = 0f;
-        var sz = contentRT.sizeDelta;
-        contentRT.sizeDelta = new Vector2(sz.x, needed);
+        // HER SEFERİNDE: sadece veri / interaktiflik güncelle
+        for (int i = 0; i < spawned.Count && i < tradeOffers.Count; i++)
+            spawned[i].Setup(tradeOffers[i], playerStats);
 
-        layoutDone = true;
+        // UI sabitle
+        Canvas.ForceUpdateCanvases();
+        if (tradeScrollRect)
+        {
+            tradeScrollRect.StopMovement();
+            tradeScrollRect.velocity = Vector2.zero;
+            tradeScrollRect.verticalNormalizedPosition = prevScroll; // kayma yok
+        }
+        EventSystem.current?.SetSelectedGameObject(null);
     }
-
-    // HER SEFERİNDE: sadece veri / interaktiflik güncelle
-    for (int i = 0; i < spawned.Count && i < tradeOffers.Count; i++)
-        spawned[i].Setup(tradeOffers[i], playerStats);
-
-    // UI sabitle
-    Canvas.ForceUpdateCanvases();
-    if (tradeScrollRect)
-    {
-        tradeScrollRect.StopMovement();
-        tradeScrollRect.velocity = Vector2.zero;
-        tradeScrollRect.verticalNormalizedPosition = prevScroll; // kayma yok
-    }
-    EventSystem.current?.SetSelectedGameObject(null);
-}
 
     // --- Kaynak kontrol & düşüm ---
     private bool HasEnoughResources(TradeOffer offer)
     {
         if (playerStats == null || offer == null) return false;
 
-        return playerStats.GetResourceAmount("Stone")      >= offer.requiredStone
-            && playerStats.GetResourceAmount("Wood")       >= offer.requiredWood
+        return playerStats.GetResourceAmount("Stone") >= offer.requiredStone
+            && playerStats.GetResourceAmount("Wood") >= offer.requiredWood
             && playerStats.GetResourceAmount("scrapMetal") >= offer.requiredScrapMetal
-            && playerStats.GetResourceAmount("Meat")       >= offer.requiredMeat
-            && playerStats.GetResourceAmount("DeerHide")   >= offer.requiredDeerHide
+            && playerStats.GetResourceAmount("Meat") >= offer.requiredMeat
+            && playerStats.GetResourceAmount("DeerHide") >= offer.requiredDeerHide
             && playerStats.GetResourceAmount("RabbitHide") >= offer.requiredRabbitHide
-            && playerStats.GetResourceAmount("Herb")       >= offer.requiredHerb;
+            && playerStats.GetResourceAmount("Herb") >= offer.requiredHerb
+            && playerStats.GetResourceAmount("Ammo") >= offer.requiredAmmo;
     }
 
     private void DeductResources(TradeOffer offer)
     {
         if (playerStats == null || offer == null) return;
 
-        if (offer.requiredStone      > 0) playerStats.RemoveResource("Stone",      offer.requiredStone);
-        if (offer.requiredWood       > 0) playerStats.RemoveResource("Wood",       offer.requiredWood);
+        if (offer.requiredStone > 0) playerStats.RemoveResource("Stone", offer.requiredStone);
+        if (offer.requiredWood > 0) playerStats.RemoveResource("Wood", offer.requiredWood);
         if (offer.requiredScrapMetal > 0) playerStats.RemoveResource("scrapMetal", offer.requiredScrapMetal);
-        if (offer.requiredMeat       > 0) playerStats.RemoveResource("Meat",       offer.requiredMeat);
-        if (offer.requiredDeerHide   > 0) playerStats.RemoveResource("DeerHide",   offer.requiredDeerHide);
+        if (offer.requiredMeat > 0) playerStats.RemoveResource("Meat", offer.requiredMeat);
+        if (offer.requiredDeerHide > 0) playerStats.RemoveResource("DeerHide", offer.requiredDeerHide);
         if (offer.requiredRabbitHide > 0) playerStats.RemoveResource("RabbitHide", offer.requiredRabbitHide);
-        if (offer.requiredHerb       > 0) playerStats.RemoveResource("Herb",       offer.requiredHerb);
+        if (offer.requiredHerb > 0) playerStats.RemoveResource("Herb", offer.requiredHerb);
+        if (offer.requiredAmmo > 0) playerStats.RemoveResource("Ammo", offer.requiredAmmo);
     }
 
     // --- Takas işlemi ---
@@ -246,6 +249,18 @@ private readonly List<TradeOfferButton> spawned = new List<TradeOfferButton>();
 
         DeductResources(offer);
 
+        if (offer.rewardKind == RewardKind.Resource && offer.resourceToGive == ResourceType.Ammo)
+        {
+            // Ammo resource ise mermi olarak aktif slota ekle
+            WeaponSlotManager.Instance?.AddReserveAmmoToActive(offer.resourceAmountToGive, clampToMax: true);
+        }
+        else
+        {
+            // Diğer resource'lar envantere normal eklenir
+            playerStats.AddResource(offer.resourceToGive.ToString(), offer.resourceAmountToGive);
+        }
+
+
         // ✅ Ödülü TEK KEZ ver
         if (offer.rewardKind == RewardKind.WeaponPart)
         {
@@ -258,15 +273,15 @@ private readonly List<TradeOfferButton> spawned = new List<TradeOfferButton>();
             {
                 switch (offer.resourceToGive)
                 {
-                    case ResourceType.Meat:       playerStats.AddResource("Meat",       offer.resourceAmountToGive); break;
-                    case ResourceType.DeerHide:   playerStats.AddResource("DeerHide",   offer.resourceAmountToGive); break;
+                    case ResourceType.Meat: playerStats.AddResource("Meat", offer.resourceAmountToGive); break;
+                    case ResourceType.DeerHide: playerStats.AddResource("DeerHide", offer.resourceAmountToGive); break;
                     case ResourceType.RabbitHide: playerStats.AddResource("RabbitHide", offer.resourceAmountToGive); break;
-                    case ResourceType.Stone:      playerStats.AddResource("Stone",      offer.resourceAmountToGive); break;
-                    case ResourceType.Wood:       playerStats.AddResource("Wood",       offer.resourceAmountToGive); break;
+                    case ResourceType.Stone: playerStats.AddResource("Stone", offer.resourceAmountToGive); break;
+                    case ResourceType.Wood: playerStats.AddResource("Wood", offer.resourceAmountToGive); break;
                     case ResourceType.scrapMetal: playerStats.AddResource("scrapMetal", offer.resourceAmountToGive); break;
-                    case ResourceType.Arrow:      playerStats.AddResource("Arrow",      offer.resourceAmountToGive); break;
-                    case ResourceType.Spear:      playerStats.AddResource("Spear",      offer.resourceAmountToGive); break;
-                    case ResourceType.Herb:       playerStats.AddResource("Herb",       offer.resourceAmountToGive); break;
+                    case ResourceType.Arrow: playerStats.AddResource("Arrow", offer.resourceAmountToGive); break;
+                    case ResourceType.Spear: playerStats.AddResource("Spear", offer.resourceAmountToGive); break;
+                    case ResourceType.Herb: playerStats.AddResource("Herb", offer.resourceAmountToGive); break;
                     default:
                         Debug.LogWarning($"Desteklenmeyen resource ödülü: {offer.resourceToGive}");
                         break;

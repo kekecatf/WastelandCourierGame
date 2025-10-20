@@ -25,6 +25,8 @@ public class Enemy : MonoBehaviour
     private Animator animator;
     private AudioSource audioSource; // YENİ
 
+    [SerializeField] private GameObject ammoPickupPrefab;
+
     [Header("Audio")]
     [Tooltip("Düşman doğduğunda veya belirli aralıklarla çalınacak sesler.")]
     public List<AudioClip> ambientSounds;
@@ -36,46 +38,47 @@ public class Enemy : MonoBehaviour
     [Tooltip("Rastgele ortam seslerinin çalınma aralığı (min ve max saniye).")]
     public Vector2 ambientSoundInterval = new Vector2(5f, 15f);
 
-[Header("Targets")]
-public Transform player;
-public Transform caravan; // Inspector’dan da atanabilir
+    [Header("Targets")]
+    public Transform player;
+    public Transform caravan; // Inspector’dan da atanabilir
 
-[Header("Armored Settings")]
-public float armoredDamageInterval = 1.0f;
-public int armoredCaravanDamage = 1;
+    [Header("Armored Settings")]
+    public float armoredDamageInterval = 1.0f;
+    public int armoredCaravanDamage = 1;
 
-[Header("Exploder Settings")]
-public float explosionRadius = 2f;
-public int explosionDamageToPlayer = 2;
-public int explosionDamageToCaravan = 2;
-public LayerMask explosionHitMask;
+    [Header("Exploder Settings")]
+    public float explosionRadius = 2f;
+    public int explosionDamageToPlayer = 2;
+    public int explosionDamageToCaravan = 2;
+    public LayerMask explosionHitMask;
 
-[Header("Contact Damage (Normal/Fast -> Player)")]
-public float contactDamageInterval = 1.0f;
+    [Header("Contact Damage (Normal/Fast -> Player)")]
+    public float contactDamageInterval = 1.0f;
     public int damageToPlayer = 1;
 
     [Header("Control")]
     public bool externalMovement = false; // sade varsayılan: false
 
-[Header("Attack Range Settings")]
-public float damageRangeToPlayer = 5f;
-public float damageRangeToCaravan = 5f;
+    [Header("Attack Range Settings")]
+    public float damageRangeToPlayer = 5f;
+    public float damageRangeToCaravan = 5f;
 
 
 
 
     private bool isDamagingPlayer = false;
-private Coroutine caravanDamageCo;
-private Coroutine playerDamageCo;
+    private Coroutine caravanDamageCo;
+    private Coroutine playerDamageCo;
 
-private Vector2 lastMoveDir = Vector2.down; // başlangıç bakış yönü
+    private Vector2 lastMoveDir = Vector2.down; // başlangıç bakış yönü
 
-void Awake() {
-    audioSource = GetComponent<AudioSource>();
-    animator = GetComponent<Animator>();                // <-- ekle
-    if (!animator) Debug.LogError("[Enemy] Animator eksik!");
-    if (!audioSource) Debug.LogError("[Enemy] AudioSource eksik!");
-}
+    void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+        animator = GetComponent<Animator>();                // <-- ekle
+        if (!animator) Debug.LogError("[Enemy] Animator eksik!");
+        if (!audioSource) Debug.LogError("[Enemy] AudioSource eksik!");
+    }
 
     public Transform target;
 
@@ -123,7 +126,7 @@ void Awake() {
             // İstersen player'ı kovalasın:
             if (caravan == null)
             {
-                var go = GameObject.FindGameObjectWithTag("Player");
+                var go = GameObject.FindGameObjectWithTag("Caravan");
                 if (go != null) caravan = go.transform;
             }
             target = caravan;
@@ -151,15 +154,16 @@ void Awake() {
             }
         }
     }
-    
-    void LateUpdate() {
-    Vector3 scale = transform.localScale;
-    scale.y = Mathf.Abs(scale.y); // her zaman pozitif olsun
-    transform.localScale = scale;
-}
+
+    void LateUpdate()
+    {
+        Vector3 scale = transform.localScale;
+        scale.y = Mathf.Abs(scale.y); // her zaman pozitif olsun
+        transform.localScale = scale;
+    }
 
 
-public void ShowDamage(int amount)
+    public void ShowDamage(int amount)
     {
         damageText.text = $"-{amount}";
         damageText.color = Color.red;
@@ -167,22 +171,22 @@ public void ShowDamage(int amount)
         StartCoroutine(FadeOutText());
     }
 
-private System.Collections.IEnumerator FadeOutText()
-{
-    float duration = 0.5f;
-    float elapsed = 0f;
-    Color c = damageText.color;
-
-    while (elapsed < duration)
+    private System.Collections.IEnumerator FadeOutText()
     {
-        float t = elapsed / duration;
-        damageText.color = Color.Lerp(Color.red, Color.white, t);
-        elapsed += Time.deltaTime;
-        yield return null;
-    }
+        float duration = 0.5f;
+        float elapsed = 0f;
+        Color c = damageText.color;
 
-    damageText.gameObject.SetActive(false);
-}
+        while (elapsed < duration)
+        {
+            float t = elapsed / duration;
+            damageText.color = Color.Lerp(Color.red, Color.white, t);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        damageText.gameObject.SetActive(false);
+    }
 
 
 
@@ -199,39 +203,39 @@ private System.Collections.IEnumerator FadeOutText()
         }
     }
 
-private System.Collections.IEnumerator MoveToSoundPosition(Vector2 soundPosition)
-{
-    float moveTime = 2f;
-    float elapsed = 0f;
-
-    while (elapsed < moveTime)
+    private System.Collections.IEnumerator MoveToSoundPosition(Vector2 soundPosition)
     {
-        Vector2 dir = (soundPosition - (Vector2)transform.position).normalized;
-        transform.position += (Vector3)(dir * moveSpeed * Time.deltaTime);
+        float moveTime = 2f;
+        float elapsed = 0f;
 
-        // İstersen burada animasyonlar da ayarla
-        animator.SetFloat("MoveX", dir.x);
-        animator.SetFloat("MoveY", dir.y);
+        while (elapsed < moveTime)
+        {
+            Vector2 dir = (soundPosition - (Vector2)transform.position).normalized;
+            transform.position += (Vector3)(dir * moveSpeed * Time.deltaTime);
 
-        elapsed += Time.deltaTime;
-        yield return null;
+            // İstersen burada animasyonlar da ayarla
+            animator.SetFloat("MoveX", dir.x);
+            animator.SetFloat("MoveY", dir.y);
+
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        // Hareket sonrası tekrar oyuncuya dön
+        if (player != null)
+            target = player;
     }
-
-    // Hareket sonrası tekrar oyuncuya dön
-    if (player != null)
-        target = player;
-}
 
 
     void Update()
-{
-    if (target == null)
     {
-        if ((enemyType == EnemyType.Normal || enemyType == EnemyType.Fast) && player != null)
-            target = player;
-        else if ((enemyType == EnemyType.Armored || enemyType == EnemyType.Exploder) && caravan != null)
-            target = caravan;
-    }
+        if (target == null)
+        {
+            if ((enemyType == EnemyType.Normal || enemyType == EnemyType.Fast) && player != null)
+                target = player;
+            else if ((enemyType == EnemyType.Armored || enemyType == EnemyType.Exploder) && caravan != null)
+                target = caravan;
+        }
 
         if (!externalMovement && target != null)
         {
@@ -255,12 +259,12 @@ private System.Collections.IEnumerator MoveToSoundPosition(Vector2 soundPosition
 
             animator.SetFloat("LastMoveX", lastMoveDir.x);
             animator.SetFloat("LastMoveY", lastMoveDir.y);
-        
-    }
-GetComponent<SpriteRenderer>().flipY = false;
 
-    
-}
+        }
+        GetComponent<SpriteRenderer>().flipY = false;
+
+
+    }
 
 
 
@@ -290,10 +294,10 @@ GetComponent<SpriteRenderer>().flipY = false;
         if (currentHealth <= 0)
         {
             if (enemyType == EnemyType.Exploder)
-    {
-        Explode();
-        return;
-    }
+            {
+                Explode();
+                return;
+            }
 
             animator.SetTrigger("Die");
             Debug.Log("Enemy should die now!");
@@ -305,16 +309,16 @@ GetComponent<SpriteRenderer>().flipY = false;
                 Debug.Log("💰 Düşman altın bıraktı!");
             }
 
-           if (damagePopupPrefab != null)
-{
-    Debug.Log("✅ Prefab atandı, instantiate ediliyor.");
-    GameObject popup = Instantiate(damagePopupPrefab, transform.position + Vector3.up * 1.0f, Quaternion.identity, transform);
-    popup.GetComponent<DamagePopup>().Setup(amount);
-}
-else
-{
-    Debug.LogWarning("⚠️ damagePopupPrefab atanmadı!");
-}
+            if (damagePopupPrefab != null)
+            {
+                Debug.Log("✅ Prefab atandı, instantiate ediliyor.");
+                GameObject popup = Instantiate(damagePopupPrefab, transform.position + Vector3.up * 1.0f, Quaternion.identity, transform);
+                popup.GetComponent<DamagePopup>().Setup(amount);
+            }
+            else
+            {
+                Debug.LogWarning("⚠️ damagePopupPrefab atanmadı!");
+            }
 
 
             if (blueprintPrefabs.Length > 0 && Random.value < 0.75f)
@@ -328,144 +332,145 @@ else
             if (hpBarInstance != null)
                 Destroy(hpBarInstance);
             Destroy(gameObject);
+            Die();
         }
 
-DamagePopupManager.Instance.SpawnPopup(transform.position, amount);
+        DamagePopupManager.Instance.SpawnPopup(transform.position, amount);
 
 
 
     }
 
-/*void OnTriggerStay2D(Collider2D collision)
-{
-    if (collision.CompareTag("Player"))
+    /*void OnTriggerStay2D(Collider2D collision)
     {
-        if (enemyType == EnemyType.Normal || enemyType == EnemyType.Fast)
-        {
-            StartPlayerDamage(collision.transform);
-        }
-    }
-    else if (collision.CompareTag("Caravan"))
-    {
-        if (enemyType == EnemyType.Armored)
-        {
-            StartCaravanDamage(collision.transform);
-        }
-        else if (enemyType == EnemyType.Exploder)
-        {
-            Explode();
-        }
-    }
-}*/
-
-
-   /* void OnTriggerEnter2D(Collider2D collision)
-    {
-        // Karavan ile temas
-        if (collision.CompareTag("Caravan"))
-        {
-            if (enemyType == EnemyType.Armored)
-            {
-                // Armored: ölme, karavana periyodik hasar vermeye başla
-                StartCaravanDamage(collision.transform);
-                return;
-            }
-            else if (enemyType == EnemyType.Exploder)
-            {
-                // Exploder: patla ve alan hasarı ver
-                Explode();
-                return;
-            }
-            else
-            {
-                // Normal/Fast karavana ulaşırsa istersen yok et veya görmezden gel
-                // Die(); // İSTEMİYORSAN yoruma al
-            }
-        }
-
-        // Oyuncu ile temas
         if (collision.CompareTag("Player"))
         {
-            if (enemyType == EnemyType.Exploder)
-            {
-                Explode();
-                return;
-            }
-            else if (enemyType == EnemyType.Normal || enemyType == EnemyType.Fast)
+            if (enemyType == EnemyType.Normal || enemyType == EnemyType.Fast)
             {
                 StartPlayerDamage(collision.transform);
             }
         }
-
+        else if (collision.CompareTag("Caravan"))
+        {
+            if (enemyType == EnemyType.Armored)
+            {
+                StartCaravanDamage(collision.transform);
+            }
+            else if (enemyType == EnemyType.Exploder)
+            {
+                Explode();
+            }
+        }
     }*/
 
-/*void OnTriggerExit2D(Collider2D collision)
-{
-    if (collision.CompareTag("Caravan") && isDamagingCaravan)
-    {
-        StopCaravanDamage();
-    }
-    if (collision.CompareTag("Player") && isDamagingPlayer)
-    {
-        StopPlayerDamage();
-    }
-}
-*/
-public void StartCaravanDamage(Transform caravanTransform)
-{
-    if (!isDamagingCaravan)
-        caravanDamageCo = StartCoroutine(DamageCaravanOverTime(caravanTransform));
-}
 
-public void StopCaravanDamage()
-{
-    isDamagingCaravan = false;
-    if (caravanDamageCo != null) StopCoroutine(caravanDamageCo);
-    caravanDamageCo = null;
-}
+    /* void OnTriggerEnter2D(Collider2D collision)
+     {
+         // Karavan ile temas
+         if (collision.CompareTag("Caravan"))
+         {
+             if (enemyType == EnemyType.Armored)
+             {
+                 // Armored: ölme, karavana periyodik hasar vermeye başla
+                 StartCaravanDamage(collision.transform);
+                 return;
+             }
+             else if (enemyType == EnemyType.Exploder)
+             {
+                 // Exploder: patla ve alan hasarı ver
+                 Explode();
+                 return;
+             }
+             else
+             {
+                 // Normal/Fast karavana ulaşırsa istersen yok et veya görmezden gel
+                 // Die(); // İSTEMİYORSAN yoruma al
+             }
+         }
+
+         // Oyuncu ile temas
+         if (collision.CompareTag("Player"))
+         {
+             if (enemyType == EnemyType.Exploder)
+             {
+                 Explode();
+                 return;
+             }
+             else if (enemyType == EnemyType.Normal || enemyType == EnemyType.Fast)
+             {
+                 StartPlayerDamage(collision.transform);
+             }
+         }
+
+     }*/
+
+    /*void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Caravan") && isDamagingCaravan)
+        {
+            StopCaravanDamage();
+        }
+        if (collision.CompareTag("Player") && isDamagingPlayer)
+        {
+            StopPlayerDamage();
+        }
+    }
+    */
+    public void StartCaravanDamage(Transform caravanTransform)
+    {
+        if (!isDamagingCaravan)
+            caravanDamageCo = StartCoroutine(DamageCaravanOverTime(caravanTransform));
+    }
+
+    public void StopCaravanDamage()
+    {
+        isDamagingCaravan = false;
+        if (caravanDamageCo != null) StopCoroutine(caravanDamageCo);
+        caravanDamageCo = null;
+    }
 
     private System.Collections.IEnumerator DamageCaravanOverTime(Transform caravanTransform)
-{
-    isDamagingCaravan = true;
-    var ch = caravanTransform.GetComponent<CaravanHealth>();
-
-    while (isDamagingCaravan && ch != null)
     {
-        ch.TakeDamage(armoredCaravanDamage);
-        yield return new WaitForSeconds(armoredDamageInterval);
+        isDamagingCaravan = true;
+        var ch = caravanTransform.GetComponent<CaravanHealth>();
+
+        while (isDamagingCaravan && ch != null)
+        {
+            ch.TakeDamage(armoredCaravanDamage);
+            yield return new WaitForSeconds(armoredDamageInterval);
+        }
+
+        isDamagingCaravan = false;
+        caravanDamageCo = null;
     }
 
-    isDamagingCaravan = false;
-    caravanDamageCo = null;
-}
-
-public void StartPlayerDamage(Transform playerTransform)
-{
-    if (!isDamagingPlayer)
-        playerDamageCo = StartCoroutine(DamagePlayerOverTime(playerTransform));
-}
-
-public void StopPlayerDamage()
-{
-    isDamagingPlayer = false;
-    if (playerDamageCo != null) StopCoroutine(playerDamageCo);
-    playerDamageCo = null;
-}
-
-private System.Collections.IEnumerator DamagePlayerOverTime(Transform playerTransform)
-{
-    isDamagingPlayer = true;
-    var ps = playerTransform.GetComponent<PlayerStats>();
-
-    while (isDamagingPlayer && ps != null)
+    public void StartPlayerDamage(Transform playerTransform)
     {
-        ps.TakeDamage(damageToPlayer);
-        yield return new WaitForSeconds(contactDamageInterval);
+        if (!isDamagingPlayer)
+            playerDamageCo = StartCoroutine(DamagePlayerOverTime(playerTransform));
     }
 
-    isDamagingPlayer = false;
-    playerDamageCo = null;
-}
+    public void StopPlayerDamage()
+    {
+        isDamagingPlayer = false;
+        if (playerDamageCo != null) StopCoroutine(playerDamageCo);
+        playerDamageCo = null;
+    }
+
+    private System.Collections.IEnumerator DamagePlayerOverTime(Transform playerTransform)
+    {
+        isDamagingPlayer = true;
+        var ps = playerTransform.GetComponent<PlayerStats>();
+
+        while (isDamagingPlayer && ps != null)
+        {
+            ps.TakeDamage(damageToPlayer);
+            yield return new WaitForSeconds(contactDamageInterval);
+        }
+
+        isDamagingPlayer = false;
+        playerDamageCo = null;
+    }
 
 
 
@@ -474,71 +479,73 @@ private System.Collections.IEnumerator DamagePlayerOverTime(Transform playerTran
 
 
 
-public void Explode()
-{
-    // Patlama efekti/animasyonu oynatmak istiyorsan burada tetikle
-    Debug.Log("💥 Exploder patladı!");
-
-    // Alan taraması (LayerMask kullanıyorsan):
-    // var hits = Physics2D.OverlapCircleAll(transform.position, explosionRadius, explosionHitMask);
-
-    // Tag filtreleyerek yapmak istersen:
-    var hits = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
-
-    foreach (var hit in hits)
-{
-    if (hit == null) continue;
-
-    if (hit.CompareTag("Player"))
+    public void Explode()
     {
-        var ps = hit.GetComponent<PlayerStats>();
-        if (ps != null) ps.TakeDamage(explosionDamageToPlayer);
+        Debug.Log("💥 Exploder patladı!");
+
+        var hits = Physics2D.OverlapCircleAll(transform.position, explosionRadius);
+
+        foreach (var hit in hits)
+        {
+            if (hit == null) continue;
+
+            if (hit.CompareTag("Player"))
+            {
+                var ps = hit.GetComponent<PlayerStats>();
+                if (ps != null) ps.TakeDamage(explosionDamageToPlayer);
+            }
+            else if (hit.CompareTag("Caravan"))
+            {
+                var ch = hit.GetComponent<CaravanHealth>();
+                if (ch != null) ch.TakeDamage(explosionDamageToCaravan);
+            }
+        }
+
+        // 📢 Bu satırı mutlaka ekle:
+        Die();
     }
-    else if (hit.CompareTag("Caravan"))
+
+
+    private void Die()
+{
+    Debug.Log("💀 Die() çağrıldı!");
+
+    // Bileşenleri devre dışı bırak
+    GetComponent<Collider2D>().enabled = false;
+    this.enabled = false;
+
+    // Ölüm animasyonu ve sesi
+    if (deathSound != null)
+        AudioSource.PlayClipAtPoint(deathSound, transform.position);
+    animator.Play("Die");
+
+    // ALTIN bırakma
+    if (goldPrefab != null && Random.value < 0.25f)
+        Instantiate(goldPrefab, transform.position, Quaternion.identity);
+
+    // BLUEPRINT bırakma
+    if (blueprintPrefabs.Length > 0 && Random.value < 0.75f)
     {
-        var ch = hit.GetComponent<CaravanHealth>();
-        if (ch != null) ch.TakeDamage(explosionDamageToCaravan);
+        int index = Random.Range(0, blueprintPrefabs.Length);
+        Instantiate(blueprintPrefabs[index], transform.position, Quaternion.identity);
     }
-}
 
+    // AMMO bırakma (%40 şans)
+    if (ammoPickupPrefab != null && Random.value < 0.3f)
+    {
+        Instantiate(ammoPickupPrefab, transform.position, Quaternion.identity);
+        Debug.Log("🔫 Düşman mermi bıraktı!");
+    }
 
-    // Ses/loot/animasyon vs:
-    if (hpBarInstance != null) Destroy(hpBarInstance);
-    if (deathSound != null) AudioSource.PlayClipAtPoint(deathSound, transform.position);
+    // HP bar'ı yok et
+    if (hpBarInstance != null) Destroy(hpBarInstance, 2f);
 
-    // İstersen kısa gecikmeyle yok et ki animasyon/ses bitsin
+    // Obje'yi yok et
     Destroy(gameObject);
 }
 
-    private void Die()
-    {
-        Debug.Log("Düşman öldü!");
-        // Önce bileşenleri devre dışı bırak ki tekrar hasar almasın veya hareket etmesin.
-        GetComponent<Collider2D>().enabled = false;
-        this.enabled = false; // Bu script'i devre dışı bırakır.
 
-        // YENİ: Ölüm sesini çal.
-        if (deathSound != null)
-        {
-            // Ölüm sesi, obje yok olmadan önce duyulabilsin diye yeni bir obje üzerinde çalınır.
-            AudioSource.PlayClipAtPoint(deathSound, transform.position);
-        }
 
-        animator.Play("Die"); // Ölüm animasyonunu oynat
-
-        // Loot düşürme
-        if (goldPrefab != null && Random.value < 0.25f) Instantiate(goldPrefab, transform.position, Quaternion.identity);
-        if (blueprintPrefabs.Length > 0 && Random.value < 0.75f)
-        {
-            int index = Random.Range(0, blueprintPrefabs.Length);
-            Instantiate(blueprintPrefabs[index], transform.position, Quaternion.identity);
-        }
-
-        // Obje ve can barını, animasyon bittikten sonra yok et (örneğin 2 saniye sonra).
-        if (hpBarInstance != null) Destroy(hpBarInstance, 2f);
-        Destroy(gameObject, 2f);
-    }
-    
     // YENİ: Rastgele ortam sesi çalan Coroutine
     private System.Collections.IEnumerator PlayAmbientSounds()
     {
@@ -546,7 +553,7 @@ public void Explode()
         {
             // Rastgele bir süre bekle
             yield return new WaitForSeconds(Random.Range(ambientSoundInterval.x, ambientSoundInterval.y));
-            
+
             // Rastgele bir ortam sesi çal
             PlayRandomSound(ambientSounds);
         }

@@ -1,43 +1,43 @@
 fileFormatVersion: 2
-guid: d8785f393663c4045b9dda0c737cbf25
+guid: ee6970cda0e1e1a44bb5a9eafa3067da
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8071754805400342752
-    second: 1AgustosSideWalk_0
+      213: 2915045512527831517
+    second: 1AgustosSideWalk 1_0
   - first:
-      213: -2931063055942060976
-    second: 1AgustosSideWalk_1
+      213: -5412622836552638131
+    second: 1AgustosSideWalk 1_1
   - first:
-      213: 367870353086835326
-    second: 1AgustosSideWalk_2
+      213: 8628227008315814015
+    second: 1AgustosSideWalk 1_2
   - first:
-      213: -477028353024624620
-    second: 1AgustosSideWalk_3
+      213: -1512438274063361857
+    second: 1AgustosSideWalk 1_3
   - first:
-      213: -1108826190907526145
-    second: 1AgustosSideWalk_4
+      213: -1715431616154166253
+    second: 1AgustosSideWalk 1_4
   - first:
-      213: -858398336681481938
-    second: 1AgustosSideWalk_5
+      213: -6108026484307246154
+    second: 1AgustosSideWalk 1_5
   - first:
-      213: -3747509037793470523
-    second: 1AgustosSideWalk_6
+      213: -3741139793443279316
+    second: 1AgustosSideWalk 1_6
   - first:
-      213: -9159109492302200209
-    second: 1AgustosSideWalk_7
+      213: -6319701701717869252
+    second: 1AgustosSideWalk 1_7
   - first:
-      213: 8862938464775318955
-    second: 1AgustosSideWalk_8
+      213: -3010302039327719967
+    second: 1AgustosSideWalk 1_8
   - first:
-      213: -3809837352313461777
-    second: 1AgustosSideWalk_9
+      213: 4332823631182025042
+    second: 1AgustosSideWalk 1_9
   - first:
-      213: -8324087118830979986
-    second: 1AgustosSideWalk_10
+      213: 1732894831063580352
+    second: 1AgustosSideWalk 1_10
   - first:
-      213: -2475400342896076776
-    second: 1AgustosSideWalk_11
+      213: 8157342814462785147
+    second: 1AgustosSideWalk 1_11
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -146,7 +146,7 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: 1AgustosSideWalk_0
+      name: 1AgustosSideWalk 1_0
       rect:
         serializedVersion: 2
         x: 12
@@ -161,14 +161,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 02f6f0e35cd5bff80800000000000000
-      internalID: -8071754805400342752
+      spriteID: dd16156f272547820800000000000000
+      internalID: 2915045512527831517
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 1AgustosSideWalk_1
+      name: 1AgustosSideWalk 1_1
       rect:
         serializedVersion: 2
         x: 92
@@ -183,14 +183,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0547d481ea5c257d0800000000000000
-      internalID: -2931063055942060976
+      spriteID: d41ec1c153082e4b0800000000000000
+      internalID: -5412622836552638131
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 1AgustosSideWalk_2
+      name: 1AgustosSideWalk 1_2
       rect:
         serializedVersion: 2
         x: 172
@@ -205,14 +205,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e7a63271320fa1500800000000000000
-      internalID: 367870353086835326
+      spriteID: f707810ffbe9db770800000000000000
+      internalID: 8628227008315814015
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 1AgustosSideWalk_3
+      name: 1AgustosSideWalk 1_3
       rect:
         serializedVersion: 2
         x: 252
@@ -227,14 +227,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 4187d268d314169f0800000000000000
-      internalID: -477028353024624620
+      spriteID: fb89fb9276db20be0800000000000000
+      internalID: -1512438274063361857
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 1AgustosSideWalk_4
+      name: 1AgustosSideWalk 1_4
       rect:
         serializedVersion: 2
         x: 331
@@ -249,14 +249,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ff3be454478ac90f0800000000000000
-      internalID: -1108826190907526145
+      spriteID: 31c18aaa8009138e0800000000000000
+      internalID: -1715431616154166253
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 1AgustosSideWalk_5
+      name: 1AgustosSideWalk 1_5
       rect:
         serializedVersion: 2
         x: 412
@@ -271,14 +271,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e296052c24b5614f0800000000000000
-      internalID: -858398336681481938
+      spriteID: 6b34034364eeb3ba0800000000000000
+      internalID: -6108026484307246154
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 1AgustosSideWalk_6
+      name: 1AgustosSideWalk 1_6
       rect:
         serializedVersion: 2
         x: 492
@@ -293,14 +293,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 5c711c1a26c2efbc0800000000000000
-      internalID: -3747509037793470523
+      spriteID: c2e2cb4ed2dc41cc0800000000000000
+      internalID: -3741139793443279316
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 1AgustosSideWalk_7
+      name: 1AgustosSideWalk 1_7
       rect:
         serializedVersion: 2
         x: 572
@@ -315,14 +315,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: f624b6c917e44e080800000000000000
-      internalID: -9159109492302200209
+      spriteID: c3dbca619c8eb48a0800000000000000
+      internalID: -6319701701717869252
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 1AgustosSideWalk_8
+      name: 1AgustosSideWalk 1_8
       rect:
         serializedVersion: 2
         x: 652
@@ -337,14 +337,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: bad241b639b7ffa70800000000000000
-      internalID: 8862938464775318955
+      spriteID: 1edbc379e324936d0800000000000000
+      internalID: -3010302039327719967
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 1AgustosSideWalk_9
+      name: 1AgustosSideWalk 1_9
       rect:
         serializedVersion: 2
         x: 732
@@ -359,14 +359,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fe3675b0d1db02bc0800000000000000
-      internalID: -3809837352313461777
+      spriteID: 251d503e228412c30800000000000000
+      internalID: 4332823631182025042
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 1AgustosSideWalk_10
+      name: 1AgustosSideWalk 1_10
       rect:
         serializedVersion: 2
         x: 812
@@ -381,14 +381,14 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e64bcaa4ed6ea7c80800000000000000
-      internalID: -8324087118830979986
+      spriteID: 0ceb7a6eaaa7c0810800000000000000
+      internalID: 1732894831063580352
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: 1AgustosSideWalk_11
+      name: 1AgustosSideWalk 1_11
       rect:
         serializedVersion: 2
         x: 892
@@ -403,8 +403,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 8189cccd08c95add0800000000000000
-      internalID: -2475400342896076776
+      spriteID: b76b32ff114b43170800000000000000
+      internalID: 8157342814462785147
       vertices: []
       indices: 
       edges: []
@@ -423,18 +423,18 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      1AgustosSideWalk_0: -8071754805400342752
-      1AgustosSideWalk_1: -2931063055942060976
-      1AgustosSideWalk_10: -8324087118830979986
-      1AgustosSideWalk_11: -2475400342896076776
-      1AgustosSideWalk_2: 367870353086835326
-      1AgustosSideWalk_3: -477028353024624620
-      1AgustosSideWalk_4: -1108826190907526145
-      1AgustosSideWalk_5: -858398336681481938
-      1AgustosSideWalk_6: -3747509037793470523
-      1AgustosSideWalk_7: -9159109492302200209
-      1AgustosSideWalk_8: 8862938464775318955
-      1AgustosSideWalk_9: -3809837352313461777
+      1AgustosSideWalk 1_0: 2915045512527831517
+      1AgustosSideWalk 1_1: -5412622836552638131
+      1AgustosSideWalk 1_10: 1732894831063580352
+      1AgustosSideWalk 1_11: 8157342814462785147
+      1AgustosSideWalk 1_2: 8628227008315814015
+      1AgustosSideWalk 1_3: -1512438274063361857
+      1AgustosSideWalk 1_4: -1715431616154166253
+      1AgustosSideWalk 1_5: -6108026484307246154
+      1AgustosSideWalk 1_6: -3741139793443279316
+      1AgustosSideWalk 1_7: -6319701701717869252
+      1AgustosSideWalk 1_8: -3010302039327719967
+      1AgustosSideWalk 1_9: 4332823631182025042
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
