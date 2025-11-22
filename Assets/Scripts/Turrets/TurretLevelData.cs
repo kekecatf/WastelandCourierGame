@@ -7,5 +7,10 @@ public class TurretLevelData
     public int requiredStone;
     public int requiredWood;
     public string requiredBlueprintId;
+     [Header("Sample Items")]
+    public ItemData stoneSO;
+    public ItemData woodSO;
+
+
 
 }

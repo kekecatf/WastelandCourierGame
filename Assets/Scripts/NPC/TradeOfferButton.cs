@@ -6,209 +6,153 @@ using System.Collections.Generic;
 public class TradeOfferButton : MonoBehaviour
 {
     [Header("UI Prefabs")]
-    [SerializeField] private GameObject offerTextPrefab;      // (yoksa buradan oluşturur)
+    [SerializeField] private GameObject offerTextPrefab;
     [SerializeField] private Button tradeButton;
     [SerializeField] private Image iconImage;
 
     [Header("Layout")]
-
     [SerializeField] private float gap = 10f;
-    [SerializeField] private float textPosX = 490f;          // Sağda sabit X
+    [SerializeField] private float textPosX = 490f;
     [SerializeField] private float textWidth = 1000f;
-    [SerializeField] private float textHeight = 100f; // ihtiyacına göre
+    [SerializeField] private float textHeight = 100f;
 
-    // --- Sprite haritaları (aynı) ---
-    [Header("Sprites: Weapon Parts")]
-    [SerializeField] private List<PartSpriteEntry> partSprites = new();
-    [Header("Sprites: Resources")]
-    [SerializeField] private List<ResourceSpriteEntry> resourceSprites = new();
-    [SerializeField] private Sprite fallbackSprite;
+    [Header("Sprites (Optional)")]
+    public Sprite fallbackSprite;
 
-    // Header'larına şunu ekleyebilirsin (istersen ayrı alan aç)
-    [Header("List Row Layout")]
-    [SerializeField] private float rowMinHeight = 120f; // her butonun satır yüksekliği
-
-
-    private Dictionary<WeaponPartType, Sprite> partMap;
-    private Dictionary<ResourceType, Sprite> resourceMap;
+    // Yeni sistem — PartItemData → Sprite
+    private Dictionary<PartItemData, Sprite> partMap = new();
 
     private TradeOffer currentOffer;
     private NPCInteraction npc;
     private PlayerStats stats;
 
-    // 🔹 Prefab içindeki Text'i buraya drag&drop yap
     [SerializeField] private TextMeshProUGUI offerTextSlot;
-    [Header("Sprites: Resources")]
-    
-
     private TextMeshProUGUI offerTextInstance;
-
-
-    [System.Serializable] public struct PartSpriteEntry { public WeaponPartType part; public Sprite sprite; }
-    [System.Serializable] public struct ResourceSpriteEntry { public ResourceType resource; public Sprite sprite; }
 
     void Awake()
     {
-        // Map kurulumları
-        partMap = new Dictionary<WeaponPartType, Sprite>();
-        foreach (var e in partSprites) if (e.sprite && !partMap.ContainsKey(e.part)) partMap.Add(e.part, e.sprite);
+        if (!iconImage && tradeButton)
+            iconImage = tradeButton.GetComponent<Image>();
 
-        resourceMap = new Dictionary<ResourceType, Sprite>();
-        foreach (var e in resourceSprites) if (e.sprite && !resourceMap.ContainsKey(e.resource)) resourceMap.Add(e.resource, e.sprite);
-
-        if (!iconImage && tradeButton) iconImage = tradeButton.GetComponent<Image>();
-
-        EnsureOfferText(); // ✅ ÇOCUK Text’i hazırla/konumlandır
-
-        ApplyRowLayout();  // ⬅️ ekle
+        EnsureOfferText();
     }
-
-    private void ApplyRowLayout()
-    {
-        // 1) Üst parent'taki VerticalLayoutGroup'un spacing'ini 'gap' ile ayarla
-        var vlg = GetComponentInParent<VerticalLayoutGroup>();
-        if (vlg != null)
-        {
-            vlg.spacing = gap;                 // ⬅️ satırlar arası boşluk
-            vlg.childForceExpandHeight = false;
-            vlg.childControlHeight = true;     // preferredHeight'i dikkate alsın
-        }
-
-        // 2) Bu buton satırının yüksekliğini belirle (LayoutElement ile)
-        var le = GetComponent<LayoutElement>();
-        if (le == null) le = gameObject.AddComponent<LayoutElement>();
-
-        // Satır yüksekliği: textHeight + üst/alt pay + istersen gap
-        float h = Mathf.Max(rowMinHeight, textHeight + gap * 2f);
-        le.minHeight = h;
-        le.preferredHeight = h;
-    }
-
 
     private void EnsureOfferText()
     {
-        if (offerTextInstance) return;
+        if (offerTextInstance != null) return;
 
         if (offerTextSlot != null)
             offerTextInstance = offerTextSlot;
         else if (offerTextPrefab != null)
-            offerTextInstance = Instantiate(offerTextPrefab, transform, false)
-                                .GetComponent<TextMeshProUGUI>();
+            offerTextInstance = Instantiate(offerTextPrefab, transform).GetComponent<TextMeshProUGUI>();
         else
-        {
             Debug.LogError("[TradeOfferButton] Text kaynağı yok!");
-            return;
-        }
 
-        PositionAndSizeText(); // sadece bunu çağır
+        PositionAndSizeText();
     }
-
 
     public void Setup(TradeOffer offer, PlayerStats statsRef)
     {
         currentOffer = offer;
         stats = statsRef;
-        npc = FindObjectOfType<NPCInteraction>();
-        if (!tradeButton || currentOffer == null) return;
+        npc = NPCInteraction.Instance;
 
-        EnsureOfferText(); // güvence
+        if (!tradeButton || currentOffer == null)
+            return;
 
-        // İkon
-        ApplyIconForOffer(currentOffer);
+        EnsureOfferText();
+        ApplyIconForOffer(offer);
 
-        // Metin
+        // ------ Metin ------
         if (offerTextInstance)
         {
-            string costText =
-                $"İstenen: {offer.requiredWood} Odun, {offer.requiredStone} Taş, {offer.requiredScrapMetal} Metal";
+            string cost = BuildCostText(offer);
 
-            if (offer.requiredMeat > 0) costText += $", {offer.requiredMeat} Et";
-            if (offer.requiredDeerHide > 0) costText += $", {offer.requiredDeerHide} Geyik Derisi";
-            if (offer.requiredRabbitHide > 0) costText += $", {offer.requiredRabbitHide} Tavşan Derisi";
-            if (offer.requiredHerb > 0) costText += $", {offer.requiredHerb} Şifalı Ot";
-            if (offer.requiredAmmo > 0) costText += $", {offer.requiredAmmo} Mermi";
+            string reward = offer.rewardKind == RewardKind.WeaponPart
+                ? $"Verilen: {offer.amountToGive} x {offer.partToGive?.itemName}"
+                : $"Verilen: {offer.rewardAmount} x {offer.rewardItemSO?.itemName}";
 
-            string rewardText = currentOffer.rewardKind == RewardKind.WeaponPart
-                ? $"Verilen: {offer.amountToGive} x {offer.partToGive}"
-                : $"Verilen: {offer.resourceAmountToGive} x {offer.resourceToGive}";
-
-            offerTextInstance.text = $"{costText}\n{rewardText}";
+            offerTextInstance.text = $"{cost}\n{reward}";
         }
 
-        // Buton aktifliği
-        bool canAfford = stats &&
-            stats.GetResourceAmount("Stone") >= offer.requiredStone &&
-            stats.GetResourceAmount("Wood") >= offer.requiredWood &&
-            stats.GetResourceAmount("scrapMetal") >= offer.requiredScrapMetal &&
-            stats.GetResourceAmount("Meat") >= offer.requiredMeat &&
-            stats.GetResourceAmount("DeerHide") >= offer.requiredDeerHide &&
-            stats.GetResourceAmount("RabbitHide") >= offer.requiredRabbitHide &&
-            stats.GetResourceAmount("Herb") >= offer.requiredHerb &&
-            stats.GetResourceAmount("Ammo") >= offer.requiredAmmo;
-
-        tradeButton.interactable = canAfford;
+        tradeButton.interactable = CanAfford(offer);
         tradeButton.onClick.RemoveAllListeners();
         tradeButton.onClick.AddListener(OnTradeClicked);
+    }
+
+    private bool CanAfford(TradeOffer offer)
+    {
+        return
+            stats.GetResourceAmount(offer.stoneSO) >= offer.requiredStone &&
+            stats.GetResourceAmount(offer.woodSO) >= offer.requiredWood &&
+            stats.GetResourceAmount(offer.scrapSO) >= offer.requiredScrapMetal &&
+            stats.GetResourceAmount(offer.meatSO) >= offer.requiredMeat &&
+            stats.GetResourceAmount(offer.deerHideSO) >= offer.requiredDeerHide &&
+            stats.GetResourceAmount(offer.rabbitHideSO) >= offer.requiredRabbitHide &&
+            stats.GetResourceAmount(offer.herbSO) >= offer.requiredHerb &&
+            stats.GetResourceAmount(offer.ammoSO) >= offer.requiredAmmo;
+    }
+
+    private string BuildCostText(TradeOffer o)
+    {
+        List<string> parts = new();
+
+        if (o.requiredWood > 0) parts.Add($"{o.requiredWood} Odun");
+        if (o.requiredStone > 0) parts.Add($"{o.requiredStone} Taş");
+        if (o.requiredScrapMetal > 0) parts.Add($"{o.requiredScrapMetal} Metal");
+        if (o.requiredMeat > 0) parts.Add($"{o.requiredMeat} Et");
+        if (o.requiredDeerHide > 0) parts.Add($"{o.requiredDeerHide} Geyik Derisi");
+        if (o.requiredRabbitHide > 0) parts.Add($"{o.requiredRabbitHide} Tavşan Derisi");
+        if (o.requiredHerb > 0) parts.Add($"{o.requiredHerb} Ot");
+        if (o.requiredAmmo > 0) parts.Add($"{o.requiredAmmo} Mermi");
+
+        return "İstenen: " + string.Join(", ", parts);
     }
 
     private void PositionAndSizeText()
     {
         var rt = offerTextInstance.rectTransform;
 
-        // Anchor/pivot
         rt.anchorMin = new Vector2(0f, 0.5f);
         rt.anchorMax = new Vector2(0f, 0.5f);
         rt.pivot = new Vector2(0f, 0.5f);
 
-        // Konum
         rt.anchoredPosition = new Vector2(textPosX, 0f);
 
-        // 🔧 Boyutu açıkça belirle (TMP'nin 200x50 varsayılanını ez)
         rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, textWidth);
         rt.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, textHeight);
 
-        // Eğer parent zincirinde Layout Group varsa, bu text'i ondan etkilenmeyecek hale getir
         var le = offerTextInstance.GetComponent<LayoutElement>();
-        if (le == null) le = offerTextInstance.gameObject.AddComponent<LayoutElement>();
-        le.ignoreLayout = true; // Layout Group boyut/konumu değiştirmesin
-
-        // Okunabilirlik için:
-        offerTextInstance.enableWordWrapping = true;
-        offerTextInstance.alignment = TextAlignmentOptions.TopLeft;
-
-        offerTextInstance.lineSpacing = 1f;
+        if (!le) le = offerTextInstance.gameObject.AddComponent<LayoutElement>();
+        le.ignoreLayout = true;
     }
 
     private void ApplyIconForOffer(TradeOffer offer)
-{
-    if (!iconImage) return;
-    Sprite s = null;
-
-    if (offer.rewardKind == RewardKind.WeaponPart)
     {
-        partMap?.TryGetValue(offer.partToGive, out s);
-    }
-    else if (offer.rewardKind == RewardKind.Resource)
-    {
-        resourceMap?.TryGetValue(offer.resourceToGive, out s);
-    }
+        if (!iconImage) return;
 
-    iconImage.sprite = s ? s : fallbackSprite;
-    iconImage.enabled = (iconImage.sprite != null);
-    if (iconImage.enabled) iconImage.preserveAspect = true;
-}
+        Sprite s = null;
 
+        if (offer.rewardKind == RewardKind.WeaponPart)
+        {
+            if (offer.partToGive != null)
+                s = offer.partToGive.icon; // ItemData icon
+        }
+        else if (offer.rewardKind == RewardKind.Resource)
+        {
+            if (offer.rewardItemSO != null)
+                s = offer.rewardItemSO.icon;
+        }
+
+        iconImage.sprite = s ? s : fallbackSprite;
+        iconImage.enabled = iconImage.sprite != null;
+        if (iconImage.enabled) iconImage.preserveAspect = true;
+    }
 
     private void OnTradeClicked()
     {
-        var inst = NPCInteraction.Instance;
-        if (inst && inst.tradeScrollRect)
-        {
-            var sr = inst.tradeScrollRect;
-            sr.StopMovement(); sr.velocity = Vector2.zero; sr.verticalNormalizedPosition = 1f;
-        }
+        if (npc == null || currentOffer == null) return;
 
-        if (!npc || currentOffer == null) return;
         npc.ExecuteTrade(currentOffer);
     }
 }

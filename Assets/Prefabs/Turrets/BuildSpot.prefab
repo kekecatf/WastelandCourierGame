@@ -108,7 +108,7 @@ RectTransform:
   m_Father: {fileID: 5946678729930466033}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 10, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
@@ -293,10 +293,14 @@ MonoBehaviour:
     requiredStone: 1
     requiredWood: 1
     requiredBlueprintId: 
+    stoneSO: {fileID: 11400000, guid: d1b4eb59deb9eea449a078661fde2354, type: 2}
+    woodSO: {fileID: 11400000, guid: 241e72043066a074c9d13e406f796c00, type: 2}
   - prefab: {fileID: 7065339760128154922, guid: 6cb7ac0260b61954184f1248df1fbbc0, type: 3}
     requiredStone: 1
     requiredWood: 1
     requiredBlueprintId: Turret_Lv2
+    stoneSO: {fileID: 11400000, guid: d1b4eb59deb9eea449a078661fde2354, type: 2}
+    woodSO: {fileID: 11400000, guid: 241e72043066a074c9d13e406f796c00, type: 2}
   buildTime: 2
   progressBar: {fileID: 7890812608410297602}
   progressCanvas: {fileID: 4697144083639564778}

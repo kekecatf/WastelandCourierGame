@@ -5,12 +5,17 @@ using TMPro;
 
 public class CampfireInteraction : MonoBehaviour
 {
+
+    // string yerine ItemData kullan
+    [SerializeField] private ItemData meatSO;
+    [SerializeField] private ItemData cookedMeatSO;
+
     [Header("Cooking")]
-    public GameObject cookedMeatPrefab;     
-    public Transform dropPoint;             
+    public GameObject cookedMeatPrefab;
+    public Transform dropPoint;
     public float cookDuration = 5f;         // Basılı tutma süresi (sn)
-    public AudioSource sfx;                 
-    public AudioClip sizzleClip;            
+    public AudioSource sfx;
+    public AudioClip sizzleClip;
 
     [Header("UI (optional)")]
     public GameObject cookPromptPanel;      // küçük bir panel
@@ -35,13 +40,13 @@ public class CampfireInteraction : MonoBehaviour
 
     void Update()
     {
-        if (!isPlayerNearby || playerStats == null) 
+        if (!isPlayerNearby || playerStats == null)
         {
             HidePrompt();
             return;
         }
 
-        bool hasMeat = playerStats.GetResourceAmount("Meat") > 0;
+        bool hasMeat = playerStats.GetResourceAmount(meatSO) > 0;
 
         // Paneli göster/gizle
         if (cookPromptPanel != null)
@@ -86,7 +91,7 @@ public class CampfireInteraction : MonoBehaviour
         if (sfx != null && sizzleClip != null) sfx.PlayOneShot(sizzleClip);
 
         // Envanterden 1 Meat düş
-        if (playerStats.RemoveResource("Meat", 1))
+        if (playerStats.RemoveResource(meatSO, 1))
         {
             // Pişmiş et prefab'ını düşür
             Vector3 pos = dropPoint != null ? dropPoint.position

@@ -1,26 +1,27 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using TMPro;
 
 public class PlayerStats : MonoBehaviour
 {
-    // --------- AYARLAR ---------
-    [Header("Use (F) Effects")]
-    [Tooltip("F ile ÇİĞ et yenirken kaç HP iyileşsin?")]
-    public int healOnRawMeatUse = 5;
-    [Tooltip("F ile PİŞMİŞ et yenirken kaç HP iyileşsin?")]
-    public int healOnCookedMeatUse = 15;
-    [Tooltip("F ile HERB yenirken kaç HP iyileşsin?")]
-    public int healOnHerbUse = 10;
 
-    [Tooltip("ÇİĞ et yendiğinde kaç açlık puanı doysun?")]
-    public int hungerOnRawMeatUse = 10;
-    [Tooltip("PİŞMİŞ et yendiğinde kaç açlık puanı doysun?")]
-    public int hungerOnCookedMeatUse = 30;
-    [Tooltip("HERB yendiğinde kaç açlık puanı doysun? (İstemezsen 0 bırak)")]
-    public int hungerOnHerbUse = 0;
+    // --- Stamina ---
+    [Header("Stamina Ayarları")]
+    public float maxStamina = 100f;
+    [SerializeField] private float currentStamina;
+    public float staminaDrainRate = 15f;  // koşarken azalır
+    public float staminaRegenWalk = 8f;   // yürürken artar
+    public float staminaRegenIdle = 18f;  // dururken artar
 
-    [Header("Health")]
+    public float GetStamina() => currentStamina;
+    public float GetMaxStamina() => maxStamina;
+    public void ModifyStamina(float amount) => currentStamina = Mathf.Clamp(currentStamina + amount, 0, maxStamina);
+    public bool HasStamina() => currentStamina > 0f;
+    public void ResetStamina() => currentStamina = maxStamina;
+
+    // --- Sağlık ---
+    [Header("Sağlık")]
     public int maxHealth = 100;
     public int currentHealth;
     public float damageCooldown = 0.5f;
@@ -31,27 +32,47 @@ public class PlayerStats : MonoBehaviour
 
     [Header("UI")]
     [SerializeField] private PlayerHealthUI healthUI;
-
     public delegate void OnHealthChanged(int current, int max);
     public event OnHealthChanged onHealthChanged;
 
-    [Header("Move/Inventory")]
+    // --- Hareket/Envanter ---
+    [Header("Hareket/Envanter")]
     public float moveSpeed = 5f;
-    public int inventoryCapacity = 20;
     public int gold = 10;
 
-    [Header("Hunger")]
+    // --- Açlık / UI ---
+    [Header("Açlık")]
     public int maxHunger = 100;
     public int currentHunger;
     public float hungerDecreaseInterval = 5f;
     public int hungerDecreaseAmount = 1;
     private float hungerTimer;
 
-    [Header("Audio")]
-    public AudioClip hurtClip;   // Inspector'dan atayacağın ses
+    [Header("Açlık UI")]
+    public TextMeshProUGUI hungerText;
+
+    // Yemeklerin sadece AÇLIK etkileri (SAĞLIK HEAL YOK!)
+    public int hungerOnRawMeatUse = 10;
+    public int hungerOnCookedMeatUse = 30;
+    public int hungerOnHerbUse = 0;
+
+    // --- Açlığa bağlı Doğal İyileşme / Açlıktan Hasar ---
+    [Header("Doğal İyileşme (Açlığa bağlı)")]
+    public bool enableHungerRegen = true;
+    public float hungerRegenThreshold = 80f;   // 80 üstü tok sayılır
+    public float healthRegenRate = 3f;         // her tikte kaç HP
+    public float healthRegenInterval = 1f;     // saniye
+    private float healthRegenTimer = 0f;
+
+    private float starvationTickInterval = 2f; // açlıktan hasar aralığı
+    private float starvationTimer = 0f;
+
+    // --- Ses ---
+    [Header("Ses")]
+    public AudioClip hurtClip;
     private AudioSource audioSource;
 
-    // XP/Level
+    // --- XP/Level ---
     public int currentXP = 0;
     public int level = 1;
     public int skillPoints = 0;
@@ -59,43 +80,57 @@ public class PlayerStats : MonoBehaviour
     public delegate void OnLevelUp();
     public event OnLevelUp onLevelUp;
 
-    // Envanterler
-    private Dictionary<string, int> resources = new Dictionary<string, int>();
-    private HashSet<string> unlockedBlueprints = new HashSet<string>();
-    private HashSet<WeaponPartType> collectedParts = new HashSet<WeaponPartType>();
-    private Dictionary<WeaponPartType, int> weaponParts = new Dictionary<WeaponPartType, int>();
+    // ---- ItemData Referansları ----
+    [Header("Item References")]
+    public ItemData cookedMeatSO;
+    public ItemData rawMeatSO;
+    public ItemData herbSO;
 
-    // --------- YAŞAM DÖNGÜSÜ ---------
+    // --- (Diğer) Scriptable Referanslar (dokunulmadı) ---
+    public GenericItemData stoneSO, ammo9mmSO, BluePrintSO, CookedMeatSO, DeerHideSO,
+                            MeatSO, RabbitHideSO, ScrapSO, WoodSO;
+
+    
+
+    // --- Unity Döngüsü ---
+    void Awake()
+    {
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null) audioSource = gameObject.AddComponent<AudioSource>();
+        AudioManager.Instance?.RouteToSFX(audioSource);
+    }
+
     void Start()
     {
         currentHunger = maxHunger;
         hungerTimer = hungerDecreaseInterval;
+
         currentHealth = maxHealth;
         onHealthChanged?.Invoke(currentHealth, maxHealth);
-    }
 
-    void Awake()
-    {
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-            audioSource = gameObject.AddComponent<AudioSource>();
-
-        // Sesleri AudioManager üzerinden miksere bağlamak istersen:
-        AudioManager.Instance?.RouteToSFX(audioSource);
+        currentStamina = maxStamina;
     }
 
     void Update()
     {
         HandleHunger();
+        HandleHungerRegen();
+        HandleStarvation();
 
-        // F ile yemek yeme (Cooked -> Raw -> Herb sırasıyla dener)
         if (Keyboard.current != null && Keyboard.current.fKey.wasPressedThisFrame)
+            TryConsumeFood(); // sadece AÇLIK kazanır, sağlık vermez
+
+        // Açlık UI güncelle
+        if (hungerText != null)
         {
-            TryConsumeFood();
+            hungerText.text = $"Açlık: {currentHunger}/{maxHunger}";
+            if (currentHunger > 60) hungerText.color = Color.green;
+            else if (currentHunger > 30) hungerText.color = Color.yellow;
+            else hungerText.color = Color.red;
         }
     }
 
-    // --------- CAN / AÇLIK ---------
+    // --- Hasar / Heal ---
     public bool IsAlive() => currentHealth > 0;
 
     public void TakeDamage(int amount)
@@ -107,7 +142,6 @@ public class PlayerStats : MonoBehaviour
         currentHealth = Mathf.Max(0, currentHealth - amount);
         onHealthChanged?.Invoke(currentHealth, maxHealth);
 
-        // 🔊 Hasar sesi oynat
         if (hurtClip != null && audioSource != null)
             audioSource.PlayOneShot(hurtClip);
 
@@ -118,8 +152,7 @@ public class PlayerStats : MonoBehaviour
 
     public void Heal(int amount)
     {
-        if (!IsAlive()) return;
-        if (amount <= 0) return;
+        if (!IsAlive() || amount <= 0) return;
         currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
         onHealthChanged?.Invoke(currentHealth, maxHealth);
     }
@@ -130,6 +163,7 @@ public class PlayerStats : MonoBehaviour
         onDeath?.Invoke();
     }
 
+    // --- Açlık Mekaniği ---
     void HandleHunger()
     {
         hungerTimer -= Time.deltaTime;
@@ -137,148 +171,89 @@ public class PlayerStats : MonoBehaviour
         {
             currentHunger = Mathf.Max(0, currentHunger - hungerDecreaseAmount);
             hungerTimer = hungerDecreaseInterval;
-            // Debug.Log("🥩 Açlık: " + currentHunger);
         }
     }
 
-    // --------- KAYNAK / ENVANTER ---------
-    public void AddResource(string type, int amount)
+    void HandleHungerRegen()
     {
-        int total = GetTotalResourceAmount();
-        if (total + amount > inventoryCapacity)
+        if (!enableHungerRegen) return;
+        if (currentHunger < hungerRegenThreshold) return;  // tok değil
+        if (currentHealth >= maxHealth) return;            // zaten full
+
+        healthRegenTimer += Time.deltaTime;
+        if (healthRegenTimer >= healthRegenInterval)
         {
-            Debug.Log("🚫 Envanter dolu!");
-            return;
+            Heal(Mathf.RoundToInt(healthRegenRate));
+            healthRegenTimer = 0f;
         }
-
-        if (!resources.ContainsKey(type)) resources[type] = 0;
-        resources[type] += amount;
-
-        // NOT: Artık pickup anında HEAL YAPMIYORUZ (Meat/Herb dahil).
-        Debug.Log($"{type} toplandı! Toplam: {resources[type]}");
     }
 
-    public bool RemoveResource(string type, int amount)
+    void HandleStarvation()
     {
-        if (resources.ContainsKey(type) && resources[type] >= amount)
+        if (currentHunger > 0 || currentHealth <= 0) { starvationTimer = 0f; return; }
+
+        // açlık 0 ise periyodik can kaybı
+        starvationTimer += Time.deltaTime;
+        if (starvationTimer >= starvationTickInterval)
         {
-            resources[type] -= amount;
-            return true;
-        }
-        return false;
-    }
-
-    public int GetResourceAmount(string type) => resources.ContainsKey(type) ? resources[type] : 0;
-
-    public int GetTotalResourceAmount()
-    {
-        int total = 0;
-        foreach (var kv in resources) total += kv.Value;
-        return total;
-    }
-
-    public void UnlockBlueprint(string blueprintId)
-    {
-        if (unlockedBlueprints.Add(blueprintId))
-            Debug.Log($"📘 Blueprint açıldı: {blueprintId}");
-    }
-    public bool HasBlueprint(string id) => unlockedBlueprints.Contains(id);
-
-    // --------- SİLAH PARÇALARI (kısaltıldı) ---------
-    public void CollectWeaponPart(WeaponPartType part, int amountToCollect = 1)
-    {
-        if (!weaponParts.ContainsKey(part)) weaponParts[part] = 0;
-        weaponParts[part] += amountToCollect;
-        WeaponPartsUI.Instance?.UpdatePartText(part, weaponParts[part]);
-    }
-    public int GetWeaponPartCount(WeaponPartType part) => weaponParts.ContainsKey(part) ? weaponParts[part] : 0;
-    public void ConsumeWeaponParts(List<PartRequirement> partsToConsume)
-    {
-        foreach (var p in partsToConsume)
-        {
-            if (weaponParts.ContainsKey(p.partType) && weaponParts[p.partType] >= p.amount)
-            {
-                weaponParts[p.partType] -= p.amount;
-                WeaponPartsUI.Instance?.UpdatePartText(p.partType, weaponParts[p.partType]);
-            }
+            TakeDamage(1);
+            starvationTimer = 0f;
         }
     }
 
-    public void AddXP(int amount)
+    // --- Envanter Köprü ---
+    public void AddResource(ItemData item, int amount)
     {
-        currentXP += amount;
-        while (currentXP >= xpToNextLevel) LevelUp();
-    }
-    void LevelUp()
-    {
-        level++;
-        currentXP -= xpToNextLevel;
-        xpToNextLevel = Mathf.RoundToInt(xpToNextLevel * 1.2f);
-        skillPoints++;
-        onLevelUp?.Invoke();
+        if (item != null)
+            Inventory.Instance.TryAdd(item, amount);
     }
 
-    // --------- YEMEK YEME (F) ---------
-    /// <summary>
-    /// F basıldığında çağrılır. Öncelik: CookedMeat > Meat > Herb
-    /// </summary>
+    public bool RemoveResource(ItemData item, int amount)
+    {
+        return item != null && Inventory.Instance.TryConsume(item, amount);
+    }
+
+    public int GetResourceAmount(ItemData item)
+    {
+        return item != null ? Inventory.Instance.GetTotalCount(item) : 0;
+    }
+
+    // --- Yemek Tüketimi (Sadece açlık ekler; SAĞLIK YOK) ---
     private void TryConsumeFood()
     {
-        // 1) Pişmiş et
-        if (GetResourceAmount("CookedMeat") > 0)
+        if (Inventory.Instance.HasEnough(cookedMeatSO, 1))
         {
-            EatCookedMeat();
+            Inventory.Instance.TryConsume(cookedMeatSO, 1);
+            GainHunger(hungerOnCookedMeatUse);
+            Debug.Log("🍗 Pişmiş et yendi!");
             return;
         }
 
-        // 2) Çiğ et
-        if (GetResourceAmount("Meat") > 0)
+        if (Inventory.Instance.HasEnough(rawMeatSO, 1))
         {
-            EatRawMeat();
+            Inventory.Instance.TryConsume(rawMeatSO, 1);
+            GainHunger(hungerOnRawMeatUse);
+            Debug.Log("🥩 Çiğ et yendi!");
             return;
         }
 
-        // 3) Ot (Herb)
-        if (GetResourceAmount("Herb") > 0)
+        if (Inventory.Instance.HasEnough(herbSO, 1))
         {
-            EatHerb();
+            Inventory.Instance.TryConsume(herbSO, 1);
+            GainHunger(hungerOnHerbUse);
+            Debug.Log("🌿 Ot yendi!");
             return;
         }
-
-        // Yoksa sessizce hiçbir şey yapma
-        // Debug.Log("🍽️ Yenilecek bir şey yok.");
-    }
-
-    public void EatCookedMeat()
-    {
-        if (!RemoveResource("CookedMeat", 1)) return;
-
-        Heal(healOnCookedMeatUse);
-        GainHunger(hungerOnCookedMeatUse);
-        Debug.Log($"🍗 Pişmiş et yendi! +{healOnCookedMeatUse} HP, Açlık +{hungerOnCookedMeatUse} → {currentHunger}/{maxHunger}");
-    }
-
-    private void EatRawMeat()
-    {
-        if (!RemoveResource("Meat", 1)) return;
-
-        Heal(healOnRawMeatUse);
-        GainHunger(hungerOnRawMeatUse);
-        Debug.Log($"🥩 Çiğ et yendi! +{healOnRawMeatUse} HP, Açlık +{hungerOnRawMeatUse} → {currentHunger}/{maxHunger}");
-    }
-
-    private void EatHerb()
-    {
-        if (!RemoveResource("Herb", 1)) return;
-
-        Heal(healOnHerbUse);
-        GainHunger(hungerOnHerbUse);
-        Debug.Log($"🌿 Ot yendi! +{healOnHerbUse} HP, Açlık +{hungerOnHerbUse} → {currentHunger}/{maxHunger}");
     }
 
     private void GainHunger(int amount)
     {
-        if (amount <= 0) return;
-        currentHunger = Mathf.Min(maxHunger, currentHunger + amount);
+        if (amount > 0)
+            currentHunger = Mathf.Min(maxHunger, currentHunger + amount);
     }
+    public void RefreshHealthUI()
+{
+    onHealthChanged?.Invoke(currentHealth, maxHealth);
+}
+
 }

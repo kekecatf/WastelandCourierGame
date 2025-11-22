@@ -1,138 +1,191 @@
-﻿// PlayerWeapon.cs (MUZZLE FLASH + SHOTGUN + HAYVAN KAÇIRMA ENTEGRE)
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
-using WeaponInstance = CaravanInventory.WeaponInstance;  // en başa ekle
 
 [RequireComponent(typeof(AudioSource))]
 public class PlayerWeapon : MonoBehaviour
 {
+    private GameObject currentModel;
 
-    [Header("Durability")]
-    [SerializeField] private int durabilityCostPerShot = 1;
-    [SerializeField] private int durabilityCostPerMelee = 1;
+    private bool isShootingHeld = false;
+    private bool isAiming = false;
+    private bool isReloading = false;
 
-    private WeaponDurability durability;
+    private PlayerControls controls;
+    private WeaponSlotManager slotManager;
 
-
-    // --- INSPECTOR'DA ATANACAK ALANLAR ---
     [Header("Weapon Configuration")]
-    public WeaponData weaponData;   // WeaponData içinde: isShotgun, pelletsPerShot, pelletSpreadAngle, shotgunCooldown beklenir.
+    public WeaponData weaponData;
 
-    [Header("Weapon Components")]
+    [Header("Components")]
     public Transform firePoint;
     public GameObject bulletPrefab;
     public LayerMask enemyLayer;
 
     [Header("Muzzle Flash")]
-    [Tooltip("Namlu ucunda anlık parlayan Light2D.")]
     public Light2D muzzleFlash;
-    [Tooltip("Parlama süresi (saniye).")]
     public float muzzleFlashDuration = 0.05f;
-    [Tooltip("Parlama sırasında kullanılacak yoğunluk.")]
     public float muzzleFlashIntensity = 3f;
-
     private Coroutine muzzleFlashCo;
 
-    [Header("Audio Clips")]
+    [Header("Audio")]
     public AudioClip shootSound;
     public AudioClip reloadSound;
     public AudioClip emptyClipSound;
 
-    private Animator animator;
     private AudioSource audioSource;
-    private int currentAmmoInClip;
+    private Animator animator;
+
+    private int clip = 0;
+    private int reserve = 0;
+    private int clipSize = 0;
+
     private float nextTimeToFire = 0f;
-    private bool isReloading = false;
 
-    [Header("Noise Settings")]
-    [Tooltip("Silah sesiyle hayvanların duyacağı menzil.")]
-    public float gunshotHearingRadius = 12f;
-    [Tooltip("Hayvanların kaçma süresi (sn).")]
-    public float gunshotFleeDuration = 3f;
-    [Tooltip("Kaçış hız çarpanı.")]
-    public float gunshotFleeMultiplier = 1.8f;
-
-    void Awake()
+    // ---------------------------------------------------------
+    // UNITY
+    // ---------------------------------------------------------
+    private void Awake()
     {
         audioSource = GetComponent<AudioSource>();
         animator = GetComponentInChildren<Animator>();
-        if (muzzleFlash != null) muzzleFlash.enabled = false;
+        controls = new PlayerControls();
 
-        // Durability component'i bu GO'da değilse parent'ta da arayalım
-        durability = GetComponent<WeaponDurability>() ?? GetComponentInParent<WeaponDurability>();
+        if (muzzleFlash != null)
+            muzzleFlash.enabled = false;
     }
 
-    private void ApplyDurabilityOnUse(bool isRanged)
+    private void Start()
     {
-        if (durability == null) return;                 // component yoksa sessizce geç
-        durability.LoseDurability(isRanged ? durabilityCostPerShot : durabilityCostPerMelee);
-    }
+        slotManager = WeaponSlotManager.Instance;
 
+        if (slotManager != null)
+            LoadFromSlot(slotManager.activeSlotIndex);
+        else
+            Debug.LogError("[PlayerWeapon] Slot Manager null!");
+    }
 
     private void OnEnable()
     {
+        controls.Gameplay.Enable();
+
+        controls.Gameplay.Shoot.performed += OnShootPerformed;
+        controls.Gameplay.Shoot.canceled += OnShootCanceled;
+
+        controls.Gameplay.Reload.performed += OnReload;
+
+        controls.Gameplay.Weapon1.performed += ctx => slotManager?.SwitchSlot(0);
+        controls.Gameplay.Weapon2.performed += ctx => slotManager?.SwitchSlot(1);
+        controls.Gameplay.Weapon3.performed += ctx => slotManager?.SwitchSlot(2);
+
+        controls.Gameplay.Melee.performed += OnMelee;
+
+        controls.Gameplay.ADS.performed += ctx => StartADS();
+        controls.Gameplay.ADS.canceled += ctx => StopADS();
+
         isReloading = false;
-        if (muzzleFlash != null) muzzleFlash.enabled = false;
     }
 
     private void OnDisable()
     {
-        if (muzzleFlash != null) muzzleFlash.enabled = false;
+        controls.Gameplay.Shoot.performed -= OnShootPerformed;
+        controls.Gameplay.Shoot.canceled -= OnShootCanceled;
+
+        controls.Gameplay.Reload.performed -= OnReload;
+        controls.Gameplay.Melee.performed -= OnMelee;
+
+        controls.Gameplay.Disable();
     }
 
+    private void Update()
+    {
+        Debug.Log($"held={isShootingHeld} auto={weaponData?.isAutomatic}");
+        if (weaponData == null) return;
+
+        // Otomatik ateş
+        if (weaponData.isAutomatic && isShootingHeld)
+            Shoot();
+    }
+
+    // ---------------------------------------------------------
+    // INPUT EVENTS
+    // ---------------------------------------------------------
+    private void OnShootPerformed(InputAction.CallbackContext ctx)
+    {
+        if (weaponData == null) return;
+        isShootingHeld = true;
+
+        if (!weaponData.isAutomatic)
+            Shoot();
+    }
+
+    private void OnShootCanceled(InputAction.CallbackContext ctx)
+    {
+        if (weaponData == null) return;
+        isShootingHeld = false;
+    }
+
+    private void OnReload(InputAction.CallbackContext ctx)
+    {
+        if (isReloading || weaponData == null) return;
+        if (reserve <= 0 || clip >= clipSize) return;
+
+        StartCoroutine(Reload());
+    }
+
+    private void OnMelee(InputAction.CallbackContext ctx)
+    {
+        if (!ctx.performed) return;
+        MeleeAttack();
+    }
+
+    // ---------------------------------------------------------
+    // SHOOTING
+    // ---------------------------------------------------------
     public void Shoot()
     {
-        if (PauseMenu.IsPaused || isReloading || Time.time < nextTimeToFire) return;
+        if (PauseMenu.IsPaused || isReloading || Time.time < nextTimeToFire)
+            return;
 
-        if (weaponData.clipSize <= 0) // Melee
+        if (weaponData == null)
+        {
+            Debug.LogWarning("WeaponData NULL!");
+            return;
+        }
+
+        if (weaponData.clipSize <= 0)
+        {
             MeleeAttack();
-        else
-            RangedAttack();
+            return;
+        }
+
+        RangedAttack();
     }
-
-
 
     private void RangedAttack()
     {
-        if (currentAmmoInClip <= 0) return;
+        if (clip <= 0)
+        {
+            PlayEmptyClipSound();
+            return;
+        }
 
-        int cost = weaponData.isShotgun ? Mathf.Max(2, durabilityCostPerShot) : durabilityCostPerShot;
-        durability.LoseDurability(cost);
+        float cooldown =
+            weaponData.isShotgun ? weaponData.shotgunCooldown :
+            weaponData.isSniper ? weaponData.sniperCooldown :
+            (1f / weaponData.fireRate);
 
+        nextTimeToFire = Time.time + cooldown;
 
-        // Shotgun'da sabit bekleme; diğerlerinde fireRate
-       float cooldown =
-    weaponData.isShotgun ? weaponData.shotgunCooldown :
-    weaponData.isSniper  ? weaponData.sniperCooldown  :
-    (1f / weaponData.fireRate);
-
-    nextTimeToFire = Time.time + cooldown;   // <<— BUNU EKLE
-
-
-
-        // Klasik shotgun davranışı: tetikte kaç saçma çıkarsa çıksın 1 mermi eksilt
-        currentAmmoInClip--;
+        clip--;
+        SyncAmmoToSlot();
 
         if (shootSound != null)
             audioSource.PlayOneShot(shootSound);
 
-        // Düşmanları sese çek
-        SoundEmitter.EmitSound(transform.position, 7f);
-
-        // Hayvanları ürküt (projede mevcutsa)
-        try
-        {
-            AnimalSoundEmitter.EmitSound(
-                firePoint != null ? (Vector2)firePoint.position : (Vector2)transform.position,
-                gunshotHearingRadius,
-                gunshotFleeDuration,
-                gunshotFleeMultiplier
-            );
-        }
-        catch { /* AnimalSoundEmitter yoksa hatayı yut. */ }
-
-        if (animator != null) animator.SetTrigger("Shoot");
+        if (animator != null)
+            animator.SetTrigger("Shoot");
 
         if (bulletPrefab != null && firePoint != null)
         {
@@ -141,101 +194,171 @@ public class PlayerWeapon : MonoBehaviour
             else
                 FireSingleBullet();
 
-            // Muzzle flash
             TryMuzzleFlash();
         }
-
-        WeaponSlotManager.Instance.UpdateAmmoText();
-
-        ApplyDurabilityOnUse(true);
-
     }
 
     private void FireSingleBullet()
     {
         GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
-        var bulletScript = bullet.GetComponent<WeaponBullet>();
-        if (bulletScript != null)
+
+        if (bullet.TryGetComponent(out WeaponBullet b))
         {
-            bulletScript.damage = weaponData.damage;
-            bulletScript.owner = this.transform;
+            b.damage = weaponData.damage;
+            b.owner = transform;
+            b.weaponType = weaponData.weaponType;
+            b.knockbackForce = weaponData.knockbackForce;
+            b.knockbackDuration = weaponData.knockbackDuration;
         }
     }
 
     private void FireShotgunPellets()
     {
         int pellets = Mathf.Max(weaponData.pelletsPerShot, 1);
-        float spread = weaponData.pelletSpreadAngle; // -spread .. +spread
+        float spread = weaponData.pelletSpreadAngle;
 
-        // Pellets sayısına göre -spread'den +spread'e eşit dağıt
         for (int i = 0; i < pellets; i++)
         {
-            float t = (pellets == 1) ? 0f : i / (pellets - 1f);
+            float t = pellets == 1 ? 0f : (float)i / (pellets - 1);
             float angle = Mathf.Lerp(-spread, spread, t);
+            Quaternion rot = firePoint.rotation * Quaternion.Euler(0, 0, angle);
 
-            Quaternion rot = firePoint.rotation * Quaternion.Euler(0f, 0f, angle);
             GameObject bullet = Instantiate(bulletPrefab, firePoint.position, rot);
 
-            var bulletScript = bullet.GetComponent<WeaponBullet>();
-            if (bulletScript != null)
+            if (bullet.TryGetComponent(out WeaponBullet b))
             {
-                bulletScript.damage = weaponData.damage;
-                bulletScript.owner = this.transform;
+                b.damage = weaponData.damage;
+                b.owner = transform;
+                b.weaponType = weaponData.weaponType;
+                b.knockbackForce = weaponData.knockbackForce;
+                b.knockbackDuration = weaponData.knockbackDuration;
             }
         }
     }
 
+    // ---------------------------------------------------------
+    // ADS
+    // ---------------------------------------------------------
+    private void StartADS()
+    {
+        isAiming = true;
+        animator?.SetBool("ADS", true);
+    }
+
+    private void StopADS()
+    {
+        isAiming = false;
+        animator?.SetBool("ADS", false);
+    }
+
+    // ---------------------------------------------------------
+    // MELEE
+    // ---------------------------------------------------------
     private void MeleeAttack()
     {
-        nextTimeToFire = Time.time + 1f / weaponData.fireRate;
-
-        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(firePoint.position, weaponData.attackRange, enemyLayer);
-        foreach (Collider2D enemyCollider in hitEnemies)
-        {
-            // Düşmana hasar verme mantığı...
-        }
-
-        ApplyDurabilityOnUse(true);
-
+        nextTimeToFire = Time.time + (1f / weaponData.fireRate);
+        Physics2D.OverlapCircleAll(firePoint.position, weaponData.attackRange, enemyLayer);
     }
 
-    public void PlayEmptyClipSound()
-    {
-        if (emptyClipSound != null && !audioSource.isPlaying)
-            audioSource.PlayOneShot(emptyClipSound);
-    }
-
-    // Şarjör değiştirme Coroutine'i
-    public IEnumerator Reload()
+    // ---------------------------------------------------------
+    // RELOAD
+    // ---------------------------------------------------------
+    private IEnumerator Reload()
     {
         isReloading = true;
-        Debug.Log($"Reloading {weaponData.weaponName}...");
 
         if (reloadSound != null)
             audioSource.PlayOneShot(reloadSound);
 
         yield return new WaitForSeconds(weaponData.reloadTime);
 
-        WeaponSlotManager.Instance.FinishReload();
-        isReloading = false;
+        int needed = clipSize - clip;
+        int loadAmount = Mathf.Min(needed, reserve);
 
-        Debug.Log("Reload finished.");
+        clip += loadAmount;
+        reserve -= loadAmount;
+
+        SyncAmmoToSlot();
+
+        isReloading = false;
     }
 
+    // ---------------------------------------------------------
+    // SLOT / MODEL SYNC
+    // ---------------------------------------------------------
+    private void SyncAmmoToSlot()
+    {
+        slotManager?.SetAmmo(slotManager.activeSlotIndex, clip, reserve);
+    }
+
+    public void LoadFromSlot(int slot)
+    {
+        if (slotManager == null) return;
+
+        WeaponData data = slotManager.GetEquippedWeapon(slot);
+        if (data == null) return;
+
+        weaponData = data;
+
+        clipSize = weaponData.clipSize;
+
+        var ammo = slotManager.GetAmmo(slot);
+        clip = ammo.clip;
+        reserve = ammo.reserve;
+    }
+
+    public void SetWeapon(WeaponData data, int clipAmount, int reserveAmount)
+    {
+        isShootingHeld = false;
+        weaponData = data;
+        clipSize = data.clipSize;
+        clip = clipAmount;
+        reserve = reserveAmount;
+        isShootingHeld = false;
+
+        if (currentModel != null)
+            Destroy(currentModel);
+
+        if (weaponData.prefab != null)
+        {
+            currentModel = Instantiate(weaponData.prefab, transform);
+            currentModel.transform.localPosition = Vector3.zero;
+            currentModel.transform.localRotation = Quaternion.identity;
+
+            Transform fp = currentModel.transform.Find("FirePoint");
+            if (fp != null)
+                firePoint = fp;
+        }
+        else
+        {
+            Debug.LogError("Weapon prefab is NULL!");
+        }
+    }
+    public void ResetShootHold()
+{
+    isShootingHeld = false;
+}
+
+
+    // ---------------------------------------------------------
+    // MUZZLE FLASH
+    // ---------------------------------------------------------
     private void TryMuzzleFlash()
     {
-        if (muzzleFlash == null || firePoint == null) return;
+        if (muzzleFlash == null || firePoint == null)
+            return;
 
-        // MuzzleLight'ı tam namlu ucuna taşı
         muzzleFlash.transform.position = firePoint.position;
 
-        if (muzzleFlashCo != null) StopCoroutine(muzzleFlashCo);
+        if (muzzleFlashCo != null)
+            StopCoroutine(muzzleFlashCo);
+
         muzzleFlashCo = StartCoroutine(MuzzleFlashRoutine());
     }
 
     private IEnumerator MuzzleFlashRoutine()
     {
-        float originalIntensity = muzzleFlash.intensity;
+        float original = muzzleFlash.intensity;
 
         muzzleFlash.intensity = muzzleFlashIntensity;
         muzzleFlash.enabled = true;
@@ -243,12 +366,12 @@ public class PlayerWeapon : MonoBehaviour
         yield return new WaitForSeconds(muzzleFlashDuration);
 
         muzzleFlash.enabled = false;
-        muzzleFlash.intensity = originalIntensity;
-        muzzleFlashCo = null;
+        muzzleFlash.intensity = original;
     }
 
-    // Yardımcı Fonksiyonlar
-    public void SetAmmoInClip(int amount) => currentAmmoInClip = amount;
-    public int GetCurrentAmmoInClip() => currentAmmoInClip;
-    public bool IsReloading() => isReloading;
+    public void PlayEmptyClipSound()
+    {
+        if (emptyClipSound != null)
+            audioSource.PlayOneShot(emptyClipSound);
+    }
 }

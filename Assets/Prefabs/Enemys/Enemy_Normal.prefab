@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: -8429525953165891100}
   - component: {fileID: 8930980258001677628}
   - component: {fileID: -6503446648121400137}
+  - component: {fileID: 6286541378763189641}
   m_Layer: 6
   m_Name: Enemy_Normal
   m_TagString: Enemy
@@ -57,6 +58,8 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -78,10 +81,11 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: 8793729625641108797, guid: ab77a868cb2efa247a64446b4917c773, type: 3}
+  m_Sprite: {fileID: -1612698152615810838, guid: d78cac009d38365418db38adf03769e0, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -131,6 +135,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41bec1f91b7cbe44f9eb54a1551e63bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  burnsInDay: 1
+  burnDamagePerTick: 10
+  burnTickInterval: 1
   maxHealth: 100
   damageText: {fileID: 0}
   hpBarPrefab: {fileID: 703183713388882252, guid: 5c650d700cb2738419891bde02ea05ab, type: 3}
@@ -141,7 +148,10 @@ MonoBehaviour:
   enemyType: 0
   moveSpeed: 2
   damageToCaravan: 1
-  ammoPickupPrefab: {fileID: 6150571164243365950, guid: be05de1dea767c842af694d9cd336b97, type: 3}
+  ammoMachineGunPrefab: {fileID: 6180062328340131064, guid: 95af945c817613d459a5f58d0578a1f6, type: 3}
+  ammoPistolPrefab: {fileID: 198045730562365017, guid: 5648beb4e00fe404e81fde3a055a6bb4, type: 3}
+  ammoShotgunPrefab: {fileID: 4663766304207827621, guid: 242db9f69c0ee144f9ae4e13a8da2e15, type: 3}
+  ammoSniperPrefab: {fileID: 7962743320762343757, guid: 166b18fd0d12e174daf1641832658742, type: 3}
   ambientSounds:
   - {fileID: 8300000, guid: f392251bd78f29e42b5ba540a090e9e5, type: 3}
   hurtSounds: []
@@ -157,6 +167,8 @@ MonoBehaviour:
   explosionHitMask:
     serializedVersion: 2
     m_Bits: 0
+  canBeKnockedBack: 1
+  knockbackRecoveryTime: 0.25
   contactDamageInterval: 1
   damageToPlayer: 1
   externalMovement: 0
@@ -219,17 +231,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.7370224, y: -0.1139034}
+  m_Offset: {x: 0.002575159, y: 0.12689877}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 2.65, y: 3.6}
+    oldSize: {x: 4.5, y: 5.25}
     newSize: {x: 1, y: 1}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.7835197, y: 2.9621933}
+  m_Size: {x: 5.275149, y: 6.09262}
   m_EdgeRadius: 0
 --- !u!82 &-6503446648121400137
 AudioSource:
@@ -328,3 +340,15 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &6286541378763189641
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5687110353871480299}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0d866d9bb6af34294470539163d42b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

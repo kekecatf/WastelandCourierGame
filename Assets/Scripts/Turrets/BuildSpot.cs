@@ -70,25 +70,29 @@ public class BuildSpot : MonoBehaviour
     }
 
     void BuildOrUpgradeTurret()
+{
+    if (currentLevel >= levels.Length) return;
+    TurretLevelData levelData = levels[currentLevel];
+
+    // Kaynak düşür
+    if (!Inventory.Instance.TryConsume(levelData.stoneSO, levelData.requiredStone) ||
+        !Inventory.Instance.TryConsume(levelData.woodSO, levelData.requiredWood))
     {
-        if (currentLevel >= levels.Length) return;
-
-        TurretLevelData levelData = levels[currentLevel];
-
-        playerStats.RemoveResource("Stone", levelData.requiredStone);
-        playerStats.RemoveResource("Wood", levelData.requiredWood);
-
-        if (currentTurret != null)
-            Destroy(currentTurret);
-
-        Vector3 spawnPos = new Vector3(transform.position.x, transform.position.y, -1f);
-        currentTurret = Instantiate(levelData.prefab, spawnPos, Quaternion.identity);
-        currentLevel++;
-
-        ResetBuild();
-
-        Debug.Log($"✅ Kule seviyesi {currentLevel} oldu!");
+        Debug.Log("🚫 Kaynak eksik!");
+        return;
     }
+
+    if (currentTurret != null)
+        Destroy(currentTurret);
+
+    Vector3 spawnPos = new Vector3(transform.position.x, transform.position.y, -1f);
+    currentTurret = Instantiate(levelData.prefab, spawnPos, Quaternion.identity);
+    currentLevel++;
+
+    ResetBuild();
+    Debug.Log($"✅ Kule seviyesi {currentLevel} oldu!");
+}
+
 
     void ResetBuild()
     {
@@ -118,21 +122,24 @@ public class BuildSpot : MonoBehaviour
     }
 
     bool HasEnoughResources()
-    {
-        if (currentLevel >= levels.Length || playerStats == null) return false;
+{
+    if (currentLevel >= levels.Length || playerStats == null) return false;
 
-        TurretLevelData levelData = levels[currentLevel];
+    TurretLevelData levelData = levels[currentLevel];
 
-        bool hasResources = playerStats.GetResourceAmount("Stone") >= levelData.requiredStone &&
-                            playerStats.GetResourceAmount("Wood") >= levelData.requiredWood;
+    bool hasResources =
+        Inventory.Instance.HasEnough(levelData.stoneSO, levelData.requiredStone) &&
+        Inventory.Instance.HasEnough(levelData.woodSO, levelData.requiredWood);
 
-        bool hasBlueprint = string.IsNullOrEmpty(levelData.requiredBlueprintId) ||
-                            playerStats.HasBlueprint(levelData.requiredBlueprintId);
+    // Eğer blueprint sistemi Inventory’ye bağlandıysa:
+    bool hasBlueprint = string.IsNullOrEmpty(levelData.requiredBlueprintId)
+        || Inventory.Instance.HasBlueprint(levelData.requiredBlueprintId);
 
-        if (!hasBlueprint)
-            Debug.Log($"🚫 Gerekli taslak yok: {levelData.requiredBlueprintId}");
+    if (!hasBlueprint)
+        Debug.Log($"🚫 Gerekli taslak yok: {levelData.requiredBlueprintId}");
 
-        return hasResources && hasBlueprint;
-    }
+    return hasResources && hasBlueprint;
+}
+
 
 }

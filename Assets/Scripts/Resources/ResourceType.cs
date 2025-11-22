@@ -7,9 +7,15 @@ public enum ResourceType
     DeerHide,
     RabbitHide,
     CookedMeat,
-    Arrow,
+    AmmoMachineGun,
+    AmmoPistol,
+    AmmoShotgun,
+    AmmoSniper,
     Spear,
     Herb,
-    Ammo
+    Ammo,
+    Blueprint,
+    Molotov,
+    Bandage// ✅ yeni eklenen
 
 }

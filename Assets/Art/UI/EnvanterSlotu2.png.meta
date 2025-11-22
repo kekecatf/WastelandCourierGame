@@ -335,9 +335,9 @@ TextureImporter:
       name: EnvanterSlotu2_24
       rect:
         serializedVersion: 2
-        x: 55
+        x: 54
         y: 377
-        width: 1469
+        width: 1222
         height: 286
       alignment: 0
       pivot: {x: 0.5, y: 0.5}

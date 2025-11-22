@@ -2,16 +2,21 @@ using UnityEngine;
 
 public class BlueprintPickup : MonoBehaviour
 {
-    public string blueprintId;
+    [Header("Blueprint Item")]
+    public ItemData blueprintSO;   // ✅ Artık string id yerine direkt ItemData
 
     void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
-            PlayerStats stats = other.GetComponent<PlayerStats>();
-            if (stats != null)
+            if (blueprintSO != null)
             {
-                stats.UnlockBlueprint(blueprintId);
+                Inventory.Instance.TryAdd(blueprintSO, 1);
+                Debug.Log($"📜 Blueprint eklendi: {blueprintSO.itemName}");
+            }
+            else
+            {
+                Debug.LogError("[BlueprintPickup] blueprintSO atanmadı!");
             }
 
             Destroy(gameObject);

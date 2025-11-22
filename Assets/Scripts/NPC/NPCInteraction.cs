@@ -209,90 +209,76 @@ public class NPCInteraction : MonoBehaviour
 
     // --- Kaynak kontrol & düşüm ---
     private bool HasEnoughResources(TradeOffer offer)
-    {
-        if (playerStats == null || offer == null) return false;
+{
+    if (playerStats == null || offer == null) return false;
 
-        return playerStats.GetResourceAmount("Stone") >= offer.requiredStone
-            && playerStats.GetResourceAmount("Wood") >= offer.requiredWood
-            && playerStats.GetResourceAmount("scrapMetal") >= offer.requiredScrapMetal
-            && playerStats.GetResourceAmount("Meat") >= offer.requiredMeat
-            && playerStats.GetResourceAmount("DeerHide") >= offer.requiredDeerHide
-            && playerStats.GetResourceAmount("RabbitHide") >= offer.requiredRabbitHide
-            && playerStats.GetResourceAmount("Herb") >= offer.requiredHerb
-            && playerStats.GetResourceAmount("Ammo") >= offer.requiredAmmo;
-    }
+    // 0 isteyenleri atla
+    if (offer.requiredStone > 0 && !Inventory.Instance.HasEnough(offer.stoneSO, offer.requiredStone)) return false;
+    if (offer.requiredWood > 0 && !Inventory.Instance.HasEnough(offer.woodSO, offer.requiredWood)) return false;
+    if (offer.requiredScrapMetal > 0 && !Inventory.Instance.HasEnough(offer.scrapSO, offer.requiredScrapMetal)) return false;
+    if (offer.requiredMeat > 0 && !Inventory.Instance.HasEnough(offer.meatSO, offer.requiredMeat)) return false;
+    if (offer.requiredDeerHide > 0 && !Inventory.Instance.HasEnough(offer.deerHideSO, offer.requiredDeerHide)) return false;
+    if (offer.requiredRabbitHide > 0 && !Inventory.Instance.HasEnough(offer.rabbitHideSO, offer.requiredRabbitHide)) return false;
+    if (offer.requiredHerb > 0 && !Inventory.Instance.HasEnough(offer.herbSO, offer.requiredHerb)) return false;
+    if (offer.requiredAmmo > 0 && !Inventory.Instance.HasEnough(offer.ammoSO, offer.requiredAmmo)) return false;
+
+    return true;
+}
+
 
     private void DeductResources(TradeOffer offer)
-    {
-        if (playerStats == null || offer == null) return;
+{
+    if (offer == null) return;
 
-        if (offer.requiredStone > 0) playerStats.RemoveResource("Stone", offer.requiredStone);
-        if (offer.requiredWood > 0) playerStats.RemoveResource("Wood", offer.requiredWood);
-        if (offer.requiredScrapMetal > 0) playerStats.RemoveResource("scrapMetal", offer.requiredScrapMetal);
-        if (offer.requiredMeat > 0) playerStats.RemoveResource("Meat", offer.requiredMeat);
-        if (offer.requiredDeerHide > 0) playerStats.RemoveResource("DeerHide", offer.requiredDeerHide);
-        if (offer.requiredRabbitHide > 0) playerStats.RemoveResource("RabbitHide", offer.requiredRabbitHide);
-        if (offer.requiredHerb > 0) playerStats.RemoveResource("Herb", offer.requiredHerb);
-        if (offer.requiredAmmo > 0) playerStats.RemoveResource("Ammo", offer.requiredAmmo);
-    }
+    if (offer.requiredStone > 0) Inventory.Instance.TryConsume(offer.stoneSO, offer.requiredStone);
+    if (offer.requiredWood > 0) Inventory.Instance.TryConsume(offer.woodSO, offer.requiredWood);
+    if (offer.requiredScrapMetal > 0) Inventory.Instance.TryConsume(offer.scrapSO, offer.requiredScrapMetal);
+    if (offer.requiredMeat > 0) Inventory.Instance.TryConsume(offer.meatSO, offer.requiredMeat);
+    if (offer.requiredDeerHide > 0) Inventory.Instance.TryConsume(offer.deerHideSO, offer.requiredDeerHide);
+    if (offer.requiredRabbitHide > 0) Inventory.Instance.TryConsume(offer.rabbitHideSO, offer.requiredRabbitHide);
+    if (offer.requiredHerb > 0) Inventory.Instance.TryConsume(offer.herbSO, offer.requiredHerb);
+    if (offer.requiredAmmo > 0) Inventory.Instance.TryConsume(offer.ammoSO, offer.requiredAmmo);
+}
 
     // --- Takas işlemi ---
-    public void ExecuteTrade(TradeOffer offer)
+public void ExecuteTrade(TradeOffer offer)
+{
+    if (offer == null) return;
+
+    // Yeterli kaynak var mı?
+    if (!HasEnoughResources(offer))
     {
-        if (offer == null) return;
-
-        if (!HasEnoughResources(offer))
-        {
-            Debug.Log("Takas başarısız! Yeterli materyal yok.");
-            return;
-        }
-
-        DeductResources(offer);
-
-        if (offer.rewardKind == RewardKind.Resource && offer.resourceToGive == ResourceType.Ammo)
-        {
-            // Ammo resource ise mermi olarak aktif slota ekle
-            WeaponSlotManager.Instance?.AddReserveAmmoToActive(offer.resourceAmountToGive, clampToMax: true);
-        }
-        else
-        {
-            // Diğer resource'lar envantere normal eklenir
-            playerStats.AddResource(offer.resourceToGive.ToString(), offer.resourceAmountToGive);
-        }
-
-
-        // ✅ Ödülü TEK KEZ ver
-        if (offer.rewardKind == RewardKind.WeaponPart)
-        {
-            playerStats?.CollectWeaponPart(offer.partToGive, offer.amountToGive);
-            Debug.Log($"Takas başarılı! {offer.amountToGive} x {offer.partToGive} alındı.");
-        }
-        else // Resource
-        {
-            if (playerStats != null && offer.resourceAmountToGive > 0)
-            {
-                switch (offer.resourceToGive)
-                {
-                    case ResourceType.Meat: playerStats.AddResource("Meat", offer.resourceAmountToGive); break;
-                    case ResourceType.DeerHide: playerStats.AddResource("DeerHide", offer.resourceAmountToGive); break;
-                    case ResourceType.RabbitHide: playerStats.AddResource("RabbitHide", offer.resourceAmountToGive); break;
-                    case ResourceType.Stone: playerStats.AddResource("Stone", offer.resourceAmountToGive); break;
-                    case ResourceType.Wood: playerStats.AddResource("Wood", offer.resourceAmountToGive); break;
-                    case ResourceType.scrapMetal: playerStats.AddResource("scrapMetal", offer.resourceAmountToGive); break;
-                    case ResourceType.Arrow: playerStats.AddResource("Arrow", offer.resourceAmountToGive); break;
-                    case ResourceType.Spear: playerStats.AddResource("Spear", offer.resourceAmountToGive); break;
-                    case ResourceType.Herb: playerStats.AddResource("Herb", offer.resourceAmountToGive); break;
-                    default:
-                        Debug.LogWarning($"Desteklenmeyen resource ödülü: {offer.resourceToGive}");
-                        break;
-                }
-                Debug.Log($"Takas başarılı! {offer.resourceAmountToGive} x {offer.resourceToGive} alındı.");
-            }
-        }
-
-        // UI’ı tazele (buton interaktifliği güncellensin)
-        PopulateTradeOffers();
+        Debug.Log("Takas başarısız! Yeterli materyal yok.");
+        return;
     }
+
+    // Kaynakları düş
+    DeductResources(offer);
+
+    // Ödül tipi: normal resource
+    if (offer.rewardKind == RewardKind.Resource)
+    {
+        if (offer.rewardItemSO != null && offer.rewardAmount > 0)
+        {
+            Inventory.Instance.TryAdd(offer.rewardItemSO, offer.rewardAmount);
+            Debug.Log($"Takas başarılı! {offer.rewardAmount} x {offer.rewardItemSO.itemName} alındı.");
+        }
+    }
+    // Ödül tipi: silah parçası
+    else if (offer.rewardKind == RewardKind.WeaponPart)
+    {
+        if (offer.partToGive != null && offer.amountToGive > 0)
+        {
+            Inventory.Instance.TryAdd(offer.partToGive, offer.amountToGive);
+            Debug.Log($"Takas başarılı! {offer.amountToGive} x {offer.partToGive.itemName} alındı.");
+        }
+    }
+
+    // UI yenile
+    PopulateTradeOffers();
+}
+
+
 
     // --- Trigger alanı ---
 

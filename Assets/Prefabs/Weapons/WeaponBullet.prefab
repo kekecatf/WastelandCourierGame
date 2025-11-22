@@ -49,6 +49,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 40
   damage: 10
+  owner: {fileID: 0}
+  weaponType: 0
+  knockbackForce: 6
+  knockbackDuration: 0.15
+  fleeOnHitDuration: 3.5
+  fleeOnHitMultiplier: 2.2
 --- !u!212 &7831401633336302384
 SpriteRenderer:
   m_ObjectHideFlags: 0

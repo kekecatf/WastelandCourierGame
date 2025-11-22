@@ -32,6 +32,7 @@ public class PlayerCollector : MonoBehaviour
         // E tuşu ile toplama
         if (Keyboard.current.eKey.wasPressedThisFrame)
         {
+            Debug.Log("E tuşuna basıldı!");
             foreach (var res in highlightedResources)
             {
                 if (res != null)

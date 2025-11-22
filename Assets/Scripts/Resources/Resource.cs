@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class Resource : MonoBehaviour
 {
+
+    public ItemData itemData;       // Yeni sistemdeki ScriptableObject
+
     [Header("Resource Settings")]
     public ResourceType type;
     public int amount = 1;
@@ -47,80 +50,28 @@ public class Resource : MonoBehaviour
 
 
     public void Collect()
-    {
-        var stats = GameObject.FindWithTag("Player")?.GetComponent<PlayerStats>();
-        if (stats == null) return;
-
-        switch (type)
-        {
-            case ResourceType.Stone:
-                stats.AddResource("Stone", amount);
-                break;
-            case ResourceType.Wood:
-                stats.AddResource("Wood", amount);
-                break;
-            case ResourceType.scrapMetal:
-                stats.AddResource("scrapMetal", amount);
-                break;
-            case ResourceType.Meat:
-                stats.AddResource("Meat", amount);
-                break;
-            case ResourceType.DeerHide:
-                stats.AddResource("DeerHide", amount);
-                break;
-            case ResourceType.RabbitHide:
-                stats.AddResource("RabbitHide", amount);
-                break;
-            case ResourceType.Arrow:
-                stats.AddResource("Arrow", amount);
-                break;
-            case ResourceType.Spear:
-                stats.AddResource("Spear", amount);
-                break;
-            case ResourceType.Herb: stats.AddResource("Herb", amount); break;
-            case ResourceType.CookedMeat: stats.AddResource("CookedMeat", amount); break;   // ✅ EKLENDİ
-
-            case ResourceType.Ammo:
 {
-    var wsm = WeaponSlotManager.Instance;
-    if (wsm == null) break;
-
-    int slot = ammoToActiveSlot ? wsm.activeSlotIndex : ammoTargetSlotIndex;
-
-    // O slotta takılı silah var mı?
-    var bp = wsm.GetBlueprintForSlot(slot);
-    var wd = bp != null ? bp.weaponData : null;
-    if (wd == null)
+    if (itemData == null)
     {
-        Debug.Log("[AmmoPickup] Bu slota takılı silah yok, mermi eklenmedi.");
-        break;
+        Debug.LogError($"[Resource] itemData null! '{gameObject.name}' üzerinde itemData atanmamış.");
+        return;
     }
 
-    // Eklenecek miktarı hesapla
-    int maxCap = wd.maxAmmoCapacity;
-    int add = ammoAmountAsPercentOfMax
-              ? Mathf.Max(1, Mathf.RoundToInt(maxCap * ammoPercentOfMax))
-              : ammoFixedAmount;
+    if (Inventory.Instance == null)
+    {
+        Debug.LogError("[Resource] Inventory.Instance bulunamadı.");
+        return;
+    }
 
-    // Mevcut clip/reserve'i çek, rezerve ekle ve (istersen) max'a clamp et
-    var (clip, reserve) = wsm.GetAmmoStateForSlot(slot);
-    int newReserve = reserve + add;
-    if (clampToMaxCapacity) newReserve = Mathf.Min(newReserve, maxCap);
+    // Item'ı envantere ekle
+    Inventory.Instance.TryAdd(itemData, amount);
 
-    // State’i geri yaz ve UI’ı güncelle
-    wsm.SetAmmoStateForSlot(slot, clip, newReserve);
+    // Eski PlayerInventory sistemine bağlı satır SİLİNDİ
+    // Çünkü yeni sistemde gerek yok.
 
-    Debug.Log($"[AmmoPickup] slot {slot}: reserve {reserve} -> {newReserve} (+{add})");
-    break;
+    Destroy(gameObject);
 }
 
-
-        }
-
-
-        Destroy(gameObject);
-
-    }
 
     public void HitResource()
     {

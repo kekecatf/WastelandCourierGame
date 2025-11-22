@@ -1,12 +1,16 @@
-// PlayerMovement.cs (YÖNÜ FARE İLE KONTROL EDEN, TAM VE HATASIZ HALİ)
-
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 5f;
+    public float sprintMultiplier = 1.7f; // Koşarken hız artışı
+    private bool isSprinting = false;
+
+    [Header("UI")]
+    public Slider staminaBar;
 
     // --- Bileşen Referansları ---
     private Rigidbody2D rb;
@@ -17,38 +21,31 @@ public class PlayerMovement : MonoBehaviour
     // --- Input System ---
     private PlayerControls controls;
     private Vector2 moveInput;
-    
-    // FacingDirection artık silah sistemi için ve karakteri çevirmek için kullanılacak.
+
+    // --- Ek Özellikler ---
     public static float FacingDirection { get; private set; } = 1f;
-
     public float soundRadius = 5f;
-
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        stats = GetComponent<PlayerStats>();
         animator = GetComponent<Animator>();
         controls = new PlayerControls();
-        mainCamera = Camera.main; // Kamerayı bir kere al, daha performanslı.
+        stats = GetComponent<PlayerStats>();
+        mainCamera = Camera.main;
     }
 
     private void OnEnable()
     {
         controls.Gameplay.Move.performed += OnMovePerformed;
         controls.Gameplay.Move.canceled += OnMoveCanceled;
+        controls.Gameplay.Sprint.performed += ctx => isSprinting = true;
+        controls.Gameplay.Sprint.canceled += ctx => isSprinting = false;
         controls.Gameplay.Enable();
-    }
-
-    public void EmitFootstep()
-    {
-        SoundEmitter.EmitSound(transform.position, soundRadius);
     }
 
     private void OnDisable()
     {
-        controls.Gameplay.Move.performed -= OnMovePerformed;
-        controls.Gameplay.Move.canceled -= OnMoveCanceled;
         controls.Gameplay.Disable();
     }
 
@@ -62,75 +59,83 @@ public class PlayerMovement : MonoBehaviour
         moveInput = Vector2.zero;
     }
 
+    public void EmitFootstep()
+    {
+        SoundEmitter.EmitSound(transform.position, soundRadius);
+    }
+
     private void FixedUpdate()
     {
-        float currentSpeed = (stats != null) ? stats.moveSpeed : this.moveSpeed;
-        rb.MovePosition(rb.position + moveInput * currentSpeed * Time.fixedDeltaTime);
+        UpdateStamina();
+
+        float currentSpeed = moveSpeed;
+        bool isMoving = moveInput.magnitude > 0.1f;
+
+        if (isSprinting && stats.HasStamina() && isMoving)
+            currentSpeed *= sprintMultiplier;
+        else
+            isSprinting = false;
+
+        Vector2 moveDelta = moveInput * currentSpeed * Time.fixedDeltaTime;
+        rb.MovePosition(rb.position + moveDelta);
     }
 
     void Update()
     {
         if (GameStateManager.IsGamePaused) return;
-        UpdateAnimationAndDirection();
+
+        UpdateRotationAndAnimation();
+
+        if (staminaBar != null && stats != null)
+        {
+            staminaBar.maxValue = stats.GetMaxStamina();
+            staminaBar.value = stats.GetStamina();
+        }
     }
 
-  private void UpdateAnimationAndDirection()
-{
-    if (animator == null || mainCamera == null) return;
-
-    // 1. Fare pozisyonunu ve nişan alma yönünü hesapla.
-    Vector2 mouseScreenPosition = Mouse.current.position.ReadValue();
-    Vector3 mouseWorldPosition = mainCamera.ScreenToWorldPoint(mouseScreenPosition);
-    Vector2 aimDirection = (mouseWorldPosition - transform.position).normalized;
-    
-    // --- YENİ MANTIK: HASSAS YÖNÜ, KESKİN 8 YÖNE YUVARLAMA ---
-    
-    // 2. Fareden gelen hassas yönü, 8 ana yönden birine çevir.
-    Vector2 discretizedAimDirection = DiscretizeDirection(aimDirection);
-    
-    // ---------------------------------------------
-
-    // 3. Animator'e bu yeni, "keskin" yönü gönder.
-    animator.SetFloat("moveX", discretizedAimDirection.x);
-    animator.SetFloat("moveY", discretizedAimDirection.y);
-
-    // 4. Genel hareket durumunu bildir.
-    bool isMoving = moveInput.sqrMagnitude > 0.01f;
-    animator.SetBool("isMoving", isMoving);
-
-    // 5. Sprite'ı çevirme (flip) mantığı.
-    // Artık 'aimDirection' değil, yuvarlanmış 'discretizedAimDirection' kullanıyoruz.
-    if (Mathf.Abs(discretizedAimDirection.x) > 0.01f)
+    // --- Stamina Sistemi (Açlığa bağlı yenilenme dahil) ---
+    private void UpdateStamina()
     {
-        FacingDirection = Mathf.Sign(discretizedAimDirection.x);
-        transform.localScale = new Vector3(Mathf.Abs(transform.localScale.x) * FacingDirection, transform.localScale.y, transform.localScale.z);
+        bool isMoving = moveInput.magnitude > 0.1f;
+
+        // Açlığa göre stamina yenilenme hızı
+        float hungerRatio = (float)stats.currentHunger / stats.maxHunger;
+        float hungerMultiplier = 1f;
+
+        if (hungerRatio >= 0.8f)
+            hungerMultiplier = 1.0f;
+        else if (hungerRatio >= 0.4f)
+            hungerMultiplier = 0.7f;
+        else
+            hungerMultiplier = 0.4f;
+
+        if (isSprinting && isMoving)
+            stats.ModifyStamina(-stats.staminaDrainRate * Time.deltaTime);
+        else if (isMoving)
+            stats.ModifyStamina(stats.staminaRegenWalk * hungerMultiplier * Time.deltaTime);
+        else
+            stats.ModifyStamina(stats.staminaRegenIdle * hungerMultiplier * Time.deltaTime);
     }
-}
 
-// YENİDEN EKLENEN YARDIMCI FONKSİYON: Gelen bir vektörü 8 ana yönden birine yuvarlar.
-private Vector2 DiscretizeDirection(Vector2 vector)
-{
-    // Açıya göre 8 yönden birini seçme daha güvenilir çalışır.
-    float angle = Mathf.Atan2(vector.y, vector.x) * Mathf.Rad2Deg;
-
-    // Açıyı 0-360 derece aralığına getir.
-    if (angle < 0) angle += 360;
-
-    // Her bir 45 derecelik dilim, bir ana yöne karşılık gelir.
-    int slice = Mathf.RoundToInt(angle / 45f);
-
-    switch (slice)
+    // --- 360° Fareye Dönük Animasyon ve Rotasyon ---
+    private void UpdateRotationAndAnimation()
     {
-        case 0: return Vector2.right;       // Sağ
-        case 1: return new Vector2(1, 1).normalized;  // Sağ-Yukarı
-        case 2: return Vector2.up;          // Yukarı
-        case 3: return new Vector2(-1, 1).normalized; // Sol-Yukarı
-        case 4: return Vector2.left;        // Sol
-        case 5: return new Vector2(-1, -1).normalized;// Sol-Aşağı
-        case 6: return Vector2.down;        // Aşağı
-        case 7: return new Vector2(1, -1).normalized; // Sağ-Aşağı
-        case 8: return Vector2.right;       // 360 derece = 0 derece
-        default: return Vector2.right;
+        if (animator == null || mainCamera == null) return;
+
+        // 🧭 Fare konumunu al ve yönü hesapla
+        Vector2 mouseScreenPos = Mouse.current.position.ReadValue();
+        Vector3 mouseWorldPos = mainCamera.ScreenToWorldPoint(mouseScreenPos);
+        Vector2 aimDirection = (mouseWorldPos - transform.position).normalized;
+
+        // 🌀 Karakteri fareye çevir (360°)
+        float angle = Mathf.Atan2(aimDirection.y, aimDirection.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0f, 0f, angle - 90f); // Sprite yukarı bakıyorsa -90f uygundur
+
+        // 🎞 Animasyon durumu
+        bool isMoving = moveInput.magnitude > 0.1f;
+        animator.SetBool("IsMoving", isMoving);
+
+        // 🔁 FacingDirection flip kontrolü (silah veya atış yönü için)
+        FacingDirection = aimDirection.x >= 0 ? 1f : -1f;
     }
-}
 }

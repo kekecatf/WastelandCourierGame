@@ -10,25 +10,38 @@ public enum RewardKind
 public class TradeOffer : ScriptableObject
 {
     [Header("Player Gives (Costs)")]
+    public ItemData stoneSO;
     public int requiredStone = 0;
+
+    public ItemData woodSO;
     public int requiredWood = 0;
+
+    public ItemData scrapSO;
     public int requiredScrapMetal = 0;
 
-    // Et ve deri gibi ek maliyetler:
+    public ItemData ammoSO;
     public int requiredAmmo = 0;
+
+    public ItemData meatSO;
     public int requiredMeat = 0;
+
+    public ItemData deerHideSO;
     public int requiredDeerHide = 0;
+
+    public ItemData rabbitHideSO;
     public int requiredRabbitHide = 0;
-    public int requiredHerb = 0; // ⬅️ YENİ
+
+    public ItemData herbSO;
+    public int requiredHerb = 0;
 
     [Header("Player Gets (Rewards)")]
-    public RewardKind rewardKind = RewardKind.WeaponPart;
+    public RewardKind rewardKind = RewardKind.Resource;
 
-    // WeaponPart ödülü için:
-    public WeaponPartType partToGive;
+    // ✔ WeaponPart ödülü için (Yeni sistem)
+    public PartItemData partToGive;
     public int amountToGive = 1;
 
-    // Resource ödülü için:
-    public ResourceType resourceToGive;
-    public int resourceAmountToGive = 0;
+    // Resource ödülü için
+    public ItemData rewardItemSO;
+    public int rewardAmount = 0;
 }

@@ -175,4 +175,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d3d5ab1d3f54c7d48a7e6c77a316cae0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blueprintId: Turret_Lv2
+  blueprintSO: {fileID: 11400000, guid: bc5f47803aa182b438eb7a46e65113bd, type: 2}

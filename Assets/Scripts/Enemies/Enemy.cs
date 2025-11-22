@@ -1,13 +1,26 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using TMPro;
 
 public class Enemy : MonoBehaviour
 {
+
+    [Header("Sun Burn (Daytime)")]
+    public bool burnsInDay = true;
+    public int burnDamagePerTick = 10;
+    public float burnTickInterval = 1f;
+
+    private Coroutine burnCo;
+    private DayNightCycle dayNightCycle;
+
+
     public int maxHealth = 5;
     private int currentHealth;
+
+    private bool isDaytimeCached = false;
 
     public TextMeshPro damageText;
 
@@ -24,8 +37,13 @@ public class Enemy : MonoBehaviour
     public int damageToCaravan = 1;
     private Animator animator;
     private AudioSource audioSource; // YENİ
+    
 
-    [SerializeField] private GameObject ammoPickupPrefab;
+    [SerializeField] private GameObject ammoMachineGunPrefab;
+    [SerializeField] private GameObject ammoPistolPrefab;
+    [SerializeField] private GameObject ammoShotgunPrefab;
+    [SerializeField] private GameObject ammoSniperPrefab;
+
 
     [Header("Audio")]
     [Tooltip("Düşman doğduğunda veya belirli aralıklarla çalınacak sesler.")]
@@ -51,6 +69,12 @@ public class Enemy : MonoBehaviour
     public int explosionDamageToPlayer = 2;
     public int explosionDamageToCaravan = 2;
     public LayerMask explosionHitMask;
+
+    [Header("Knockback")]
+    public bool canBeKnockedBack = true;
+    public float knockbackRecoveryTime = 0.25f; // geri tepme sonrası hareketin toparlanma süresi
+
+    private Coroutine knockbackCoroutine;
 
     [Header("Contact Damage (Normal/Fast -> Player)")]
     public float contactDamageInterval = 1.0f;
@@ -78,7 +102,40 @@ public class Enemy : MonoBehaviour
         animator = GetComponent<Animator>();                // <-- ekle
         if (!animator) Debug.LogError("[Enemy] Animator eksik!");
         if (!audioSource) Debug.LogError("[Enemy] AudioSource eksik!");
+
     }
+
+
+    void OnDisable()
+    {
+        DayNightCycle.OnDayNightChanged -= HandleDayNightChanged;
+    }
+
+
+
+    private void HandleDayNightChanged(bool isDay)
+    {
+        if (this == null || !gameObject) return; // 💥 Koruma satırı
+
+        isDaytimeCached = isDay;
+
+        if (!burnsInDay) return;
+
+        if (isDay)
+        {
+            if (burnCo == null)
+                burnCo = StartCoroutine(SunBurnRoutine());
+        }
+        else
+        {
+            if (burnCo != null)
+            {
+                StopCoroutine(burnCo);
+                burnCo = null;
+            }
+        }
+    }
+
 
     public Transform target;
 
@@ -98,6 +155,13 @@ public class Enemy : MonoBehaviour
                 Debug.LogError("Fill Image bulunamadı! Prefab hiyerarşisini kontrol et.");
 
             hpFillImage.fillAmount = 1f; // başlangıçta dolu
+
+            DayNightCycle.OnDayNightChanged += HandleDayNightChanged;
+
+            // Eğer oyun başladığında gündüzse hemen yanma başlat
+            if (burnsInDay && DayNightCycle.Instance != null && DayNightCycle.Instance.IsDay)
+                HandleDayNightChanged(true);
+
         }
 
 
@@ -137,7 +201,7 @@ public class Enemy : MonoBehaviour
             StartCoroutine(PlayAmbientSounds());
 
         // --- Mevcut Start içeriğin (OverlapCircleAll vb.) devamı ---
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 0.5f);
+        /*Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 0.5f);
         foreach (var hit in hits)
         {
             if (hit.CompareTag("Player"))
@@ -152,8 +216,38 @@ public class Enemy : MonoBehaviour
                 else if (enemyType == EnemyType.Exploder)
                     Explode();
             }
+        }*/
+
+        GameObject cycleObj = GameObject.FindObjectOfType<DayNightCycle>()?.gameObject;
+        if (cycleObj != null)
+            dayNightCycle = cycleObj.GetComponent<DayNightCycle>();
+
+        if (burnsInDay && dayNightCycle != null && IsDayTime())
+        {
+            burnCo = StartCoroutine(SunBurnRoutine());
+        }
+
+    }
+
+
+
+    private bool IsDayTime()
+    {
+        return dayNightCycle != null &&
+               dayNightCycle.GetType().GetField("isDay", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance).GetValue(dayNightCycle).Equals(true);
+    }
+
+    private IEnumerator SunBurnRoutine()
+    {
+        while (true)
+        {
+            TakeDamage(burnDamagePerTick);
+
+            if (currentHealth <= 0) yield break; // düşman öldüyse çık
+            yield return new WaitForSeconds(burnTickInterval);
         }
     }
+
 
     void LateUpdate()
     {
@@ -188,6 +282,60 @@ public class Enemy : MonoBehaviour
         damageText.gameObject.SetActive(false);
     }
 
+
+    public void ApplyKnockback(Vector2 sourcePosition, float force, float duration)
+    {
+        if (!canBeKnockedBack) return;
+
+        // Eğer zaten bir knockback coroutine çalışıyorsa tekrar başlatma
+        if (knockbackCoroutine != null)
+            return;
+
+        Vector2 dir = ((Vector2)transform.position - sourcePosition).normalized;
+        knockbackCoroutine = StartCoroutine(KnockbackRoutine(dir, force, duration));
+    }
+
+    private IEnumerator KnockbackRoutine(Vector2 direction, float force, float duration)
+    {
+        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        float elapsed = 0f;
+
+        if (rb != null)
+        {
+            bool wasKinematic = rb.isKinematic;
+            if (wasKinematic) rb.isKinematic = false;
+
+            // 🔹 Kuvvet uygula (Impulse)
+            rb.AddForce(direction * force, ForceMode2D.Impulse);
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            // 🔹 Hareketi durdur
+            rb.linearVelocity = Vector2.zero;
+
+            if (wasKinematic) rb.isKinematic = true;
+        }
+        else
+        {
+            // Rigidbody yoksa transform hareketi uygula
+            Vector2 startPos = transform.position;
+            while (elapsed < duration)
+            {
+                transform.position = (Vector2)transform.position + direction * (force * Time.deltaTime);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+        }
+
+        // 🔹 Küçük bir toparlanma süresi
+        yield return new WaitForSeconds(knockbackRecoveryTime);
+
+        knockbackCoroutine = null;
+    }
 
 
     // Enemy.cs içine
@@ -227,47 +375,49 @@ public class Enemy : MonoBehaviour
     }
 
 
-    void Update()
+   void Update()
+{
+    if (target == null)
     {
-        if (target == null)
-        {
-            if ((enemyType == EnemyType.Normal || enemyType == EnemyType.Fast) && player != null)
-                target = player;
-            else if ((enemyType == EnemyType.Armored || enemyType == EnemyType.Exploder) && caravan != null)
-                target = caravan;
-        }
+        if ((enemyType == EnemyType.Normal || enemyType == EnemyType.Fast) && player != null)
+            target = player;
+        else if ((enemyType == EnemyType.Armored || enemyType == EnemyType.Exploder) && caravan != null)
+            target = caravan;
+    }
 
-        if (!externalMovement && target != null)
-        {
-            float distanceToTarget = Vector2.Distance(transform.position, target.position);
-            float stopDistance = (enemyType == EnemyType.Normal || enemyType == EnemyType.Fast) ? damageRangeToPlayer : damageRangeToCaravan;
+    if (!externalMovement && target != null)
+    {
+        float distanceToTarget = Vector2.Distance(transform.position, target.position);
+        float stopDistance = (enemyType == EnemyType.Normal || enemyType == EnemyType.Fast)
+            ? damageRangeToPlayer
+            : damageRangeToCaravan;
 
+        Vector2 dir = (target.position - transform.position).normalized;
+
+        if (!isAttacking) // 🔸 saldırı modunda değilse
+        {
             if (distanceToTarget > stopDistance)
             {
-                Vector2 dir = (target.position - transform.position).normalized;
-                transform.position += (Vector3)(dir * Time.deltaTime * moveSpeed);
+                // 🧭 Hedefe doğru ilerle
+                transform.position += (Vector3)(dir * moveSpeed * Time.deltaTime);
 
-                animator.SetFloat("Speed", 1f);
-                animator.SetFloat("MoveX", dir.x);
-                animator.SetFloat("MoveY", dir.y);
-                lastMoveDir = dir;
+                // 🎬 Yürüme animasyonu
+                if (!animator.GetBool("IsMoving"))
+                    animator.SetBool("IsMoving", true);
+
+                // 🔁 360° rotasyon
+                float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+                transform.rotation = Quaternion.Euler(0f, 0f, angle - 90f);
             }
             else
             {
-                animator.SetFloat("Speed", 0f);
+                // 🔸 hedefe ulaştıysa -> saldırı başlat
+                animator.SetBool("IsMoving", false);
+                StartCoroutine(AttackPlayerRoutine());
             }
-
-            animator.SetFloat("LastMoveX", lastMoveDir.x);
-            animator.SetFloat("LastMoveY", lastMoveDir.y);
-
         }
-        GetComponent<SpriteRenderer>().flipY = false;
-
-
     }
-
-
-
+}
 
 
     public void TakeDamage(int amount)
@@ -340,6 +490,44 @@ public class Enemy : MonoBehaviour
 
 
     }
+
+public bool isAttacking = false;
+
+public IEnumerator AttackPlayerRoutine()
+{
+    if (isAttacking) yield break;
+    isAttacking = true;
+
+    // 🛑 Hareketi durdur
+    animator.SetBool("IsMoving", false);
+
+    // 🎬 Saldırı animasyonu
+    animator.SetTrigger("Attack");
+
+    // ⏳ Animasyon bitene kadar bekle (örneğin 2 sn)
+    yield return new WaitForSeconds(2f);
+
+    // 🔁 Tekrar hareket etmeye devam et
+    isAttacking = false;
+}
+
+// 🔥 Animator Event tarafından çağrılacak fonksiyon
+public void DealDamageToPlayer()
+{
+    if (enemyType == EnemyType.Normal || enemyType == EnemyType.Fast)
+    {
+        if (player != null)
+        {
+            PlayerStats ps = player.GetComponent<PlayerStats>();
+            if (ps != null)
+            {
+                ps.TakeDamage(damageToPlayer);
+                Debug.Log("💥 Düşman saldırı animasyonu sırasında oyuncuya hasar verdi!");
+            }
+        }
+    }
+}
+
 
     /*void OnTriggerStay2D(Collider2D collision)
     {
@@ -444,7 +632,7 @@ public class Enemy : MonoBehaviour
         caravanDamageCo = null;
     }
 
-    public void StartPlayerDamage(Transform playerTransform)
+   /* public void StartPlayerDamage(Transform playerTransform)
     {
         if (!isDamagingPlayer)
             playerDamageCo = StartCoroutine(DamagePlayerOverTime(playerTransform));
@@ -472,7 +660,7 @@ public class Enemy : MonoBehaviour
         playerDamageCo = null;
     }
 
-
+*/
 
     private bool isDamagingCaravan = false;
 
@@ -507,42 +695,60 @@ public class Enemy : MonoBehaviour
 
 
     private void Die()
-{
-    Debug.Log("💀 Die() çağrıldı!");
-
-    // Bileşenleri devre dışı bırak
-    GetComponent<Collider2D>().enabled = false;
-    this.enabled = false;
-
-    // Ölüm animasyonu ve sesi
-    if (deathSound != null)
-        AudioSource.PlayClipAtPoint(deathSound, transform.position);
-    animator.Play("Die");
-
-    // ALTIN bırakma
-    if (goldPrefab != null && Random.value < 0.25f)
-        Instantiate(goldPrefab, transform.position, Quaternion.identity);
-
-    // BLUEPRINT bırakma
-    if (blueprintPrefabs.Length > 0 && Random.value < 0.75f)
     {
-        int index = Random.Range(0, blueprintPrefabs.Length);
-        Instantiate(blueprintPrefabs[index], transform.position, Quaternion.identity);
+        Debug.Log("💀 Die() çağrıldı!");
+
+        // Bileşenleri devre dışı bırak
+        GetComponent<Collider2D>().enabled = false;
+        this.enabled = false;
+
+        // Ölüm animasyonu ve sesi
+        if (deathSound != null)
+            AudioSource.PlayClipAtPoint(deathSound, transform.position);
+        animator.Play("Die");
+
+        // ALTIN bırakma (%25 şans)
+        if (goldPrefab != null && Random.value < 0.25f)
+            Instantiate(goldPrefab, transform.position, Quaternion.identity);
+
+        // BLUEPRINT bırakma (%75 şans)
+        if (blueprintPrefabs.Length > 0 && Random.value < 0.75f)
+        {
+            int index = Random.Range(0, blueprintPrefabs.Length);
+            Instantiate(blueprintPrefabs[index], transform.position, Quaternion.identity);
+        }
+
+        // --- 🔫 AMMO bırakma ---
+        float dropChance = 0.4f; // %40 olasılıkla mermi düşsün
+        float roll = Random.value;
+        Debug.Log($"🎲 Ammo drop roll: {roll}");
+
+        if (roll < dropChance)
+        {
+            List<GameObject> possibleAmmo = new List<GameObject>();
+
+            if (ammoMachineGunPrefab != null) possibleAmmo.Add(ammoMachineGunPrefab);
+            if (ammoPistolPrefab != null) possibleAmmo.Add(ammoPistolPrefab);
+            if (ammoShotgunPrefab != null) possibleAmmo.Add(ammoShotgunPrefab);
+            if (ammoSniperPrefab != null) possibleAmmo.Add(ammoSniperPrefab);
+
+            Debug.Log($"🎯 {possibleAmmo.Count} ammo türü listede.");
+
+            if (possibleAmmo.Count > 0)
+            {
+                GameObject selectedAmmo = possibleAmmo[Random.Range(0, possibleAmmo.Count)];
+                Instantiate(selectedAmmo, transform.position, Quaternion.identity);
+                Debug.Log($"🔫 Rastgele mermi düştü: {selectedAmmo.name}");
+            }
+        }
+
+        // HP bar'ı yok et
+        if (hpBarInstance != null) Destroy(hpBarInstance, 2f);
+
+        // Obje'yi yok et
+        Destroy(gameObject);
     }
 
-    // AMMO bırakma (%40 şans)
-    if (ammoPickupPrefab != null && Random.value < 0.3f)
-    {
-        Instantiate(ammoPickupPrefab, transform.position, Quaternion.identity);
-        Debug.Log("🔫 Düşman mermi bıraktı!");
-    }
-
-    // HP bar'ı yok et
-    if (hpBarInstance != null) Destroy(hpBarInstance, 2f);
-
-    // Obje'yi yok et
-    Destroy(gameObject);
-}
 
 
 

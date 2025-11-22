@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: -2921067208854207943}
   - component: {fileID: 4703008029683491307}
   - component: {fileID: 3602962091175990700}
+  - component: {fileID: -6484755698151943272}
   m_Layer: 6
   m_Name: Enemy_Fast
   m_TagString: Enemy
@@ -57,6 +58,8 @@ SpriteRenderer:
   m_RayTracingAccelStructBuildFlagsOverride: 0
   m_RayTracingAccelStructBuildFlags: 1
   m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
@@ -78,15 +81,16 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: 7632719253026008009, guid: 2091a8044fa73874ea92759725d3d210, type: 3}
+  m_Sprite: {fileID: -3079420037478367009, guid: 4a784dcc4b0ef744cbefda1f34b7cece, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 2.75, y: 5.0833335}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -131,6 +135,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 41bec1f91b7cbe44f9eb54a1551e63bf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  burnsInDay: 1
+  burnDamagePerTick: 10
+  burnTickInterval: 1
   maxHealth: 50
   damageText: {fileID: 0}
   hpBarPrefab: {fileID: 703183713388882252, guid: 5c650d700cb2738419891bde02ea05ab, type: 3}
@@ -139,9 +146,12 @@ MonoBehaviour:
   blueprintPrefabs:
   - {fileID: 7092412709379881292, guid: 917825acf1010e44db1845a4722bfed1, type: 3}
   enemyType: 3
-  moveSpeed: 2
+  moveSpeed: 7
   damageToCaravan: 1
-  ammoPickupPrefab: {fileID: 6150571164243365950, guid: be05de1dea767c842af694d9cd336b97, type: 3}
+  ammoMachineGunPrefab: {fileID: 6180062328340131064, guid: 95af945c817613d459a5f58d0578a1f6, type: 3}
+  ammoPistolPrefab: {fileID: 198045730562365017, guid: 5648beb4e00fe404e81fde3a055a6bb4, type: 3}
+  ammoShotgunPrefab: {fileID: 4663766304207827621, guid: 242db9f69c0ee144f9ae4e13a8da2e15, type: 3}
+  ammoSniperPrefab: {fileID: 7962743320762343757, guid: 166b18fd0d12e174daf1641832658742, type: 3}
   ambientSounds:
   - {fileID: 8300000, guid: 3be02a8ee5d579441b0b438669263c3a, type: 3}
   hurtSounds: []
@@ -157,12 +167,15 @@ MonoBehaviour:
   explosionHitMask:
     serializedVersion: 2
     m_Bits: 0
+  canBeKnockedBack: 1
+  knockbackRecoveryTime: 0.25
   contactDamageInterval: 1
   damageToPlayer: 1
   externalMovement: 0
   damageRangeToPlayer: 5
   damageRangeToCaravan: 5
   target: {fileID: 6370573785070047475, guid: 07166245952cd734daa010f4526e861c, type: 3}
+  isAttacking: 0
 --- !u!95 &-2921067208854207943
 Animator:
   serializedVersion: 7
@@ -219,17 +232,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.47849846, y: 0}
+  m_Offset: {x: 0.13014746, y: 0.4435891}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 4.17, y: 2.75}
-    newSize: {x: 1, y: 1}
+    oldSize: {x: 2.75, y: 5.0833335}
+    newSize: {x: 2.75, y: 5.0833335}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 2.215145, y: 2.81}
+  m_Size: {x: 2.8547392, y: 3.6971781}
   m_EdgeRadius: 0
 --- !u!82 &3602962091175990700
 AudioSource:
@@ -328,3 +341,15 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+--- !u!114 &-6484755698151943272
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5687110353871480299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b0d866d9bb6af34294470539163d42b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

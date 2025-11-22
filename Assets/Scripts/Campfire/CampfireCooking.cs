@@ -9,6 +9,11 @@ public class CampfireCooking : MonoBehaviour
     public GameObject cookedMeatPrefab;         // Düşecek pickup
     public Transform dropPoint;                 // Opsiyonel, yoksa otomatik offset
 
+    // string yerine ItemData kullan
+    [SerializeField] private ItemData meatSO;
+    [SerializeField] private ItemData cookedMeatSO;
+
+
     [Header("UI")]
     public GameObject progressCanvas;           // Panel (aktif/pasif yapılacak)
     public Slider progressBar;                  // 0..1
@@ -25,14 +30,14 @@ public class CampfireCooking : MonoBehaviour
         if (player) playerStats = player.GetComponent<PlayerStats>();
 
         if (progressCanvas) progressCanvas.SetActive(false);
-        if (progressBar)   progressBar.value = 0f;
+        if (progressBar) progressBar.value = 0f;
     }
 
     void Update()
     {
         if (!isPlayerNearby || playerStats == null) return;
 
-        bool hasMeat = playerStats.GetResourceAmount("Meat") > 0;
+        bool hasMeat = playerStats.GetResourceAmount(meatSO) > 0;
 
         // C'ye basılı tutuluyorsa ve et varsa pişirmeyi başlat/sürdür
         if (hasMeat && Keyboard.current.cKey.isPressed)
@@ -62,8 +67,8 @@ public class CampfireCooking : MonoBehaviour
     private void FinishCooking()
     {
         // Envanterden 1 Meat düş; (RemoveResource bool döndürmüyorsa önce kontrol ettik zaten)
-        if (playerStats.GetResourceAmount("Meat") > 0)
-            playerStats.RemoveResource("Meat", 1);
+        if (playerStats.GetResourceAmount(meatSO) > 0)
+            playerStats.RemoveResource(meatSO, 1);
         else
             return;
 
@@ -81,7 +86,7 @@ public class CampfireCooking : MonoBehaviour
     {
         isCooking = false;
         holdTimer = 0f;
-        if (progressBar)   progressBar.value = 0f;
+        if (progressBar) progressBar.value = 0f;
         if (progressCanvas) progressCanvas.SetActive(false);
     }
 
