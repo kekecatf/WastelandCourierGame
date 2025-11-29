@@ -23,16 +23,16 @@ MonoBehaviour:
   knockbackForce: 6
   knockbackDuration: 0.18
   isAutomatic: 0
-  fireRate: 2
-  damage: 20
-  clipSize: 7
+  fireRate: 1.2
+  damage: 15
+  clipSize: 6
   maxAmmoCapacity: 14
   reloadTime: 1.5
   attackRange: 1.5
   isShotgun: 1
-  pelletsPerShot: 3
-  pelletSpreadAngle: 20
-  shotgunCooldown: 2.5
+  pelletsPerShot: 5
+  pelletSpreadAngle: 18
+  shotgunCooldown: 1
   isSniper: 0
   sniperCooldown: 3
   sniperPenetrationCount: 2
