@@ -1,4 +1,6 @@
 ﻿using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
@@ -6,13 +8,11 @@ using UnityEngine.Rendering.Universal;
 [RequireComponent(typeof(AudioSource))]
 public class PlayerWeapon : MonoBehaviour
 {
+    // References
     private GameObject currentModel;
+    private AudioSource audioSource;
+    private Animator animator;
 
-    private bool isShootingHeld = false;
-    private bool isAiming = false;
-    private bool isReloading = false;
-
-    private PlayerControls controls;
     private WeaponSlotManager slotManager;
 
     [Header("Weapon Configuration")]
@@ -34,22 +34,28 @@ public class PlayerWeapon : MonoBehaviour
     public AudioClip reloadSound;
     public AudioClip emptyClipSound;
 
-    private AudioSource audioSource;
-    private Animator animator;
+    // Input System
+    private PlayerControls controls;
 
-    private int clip = 0;
-    private int reserve = 0;
-    private int clipSize = 0;
+    // State
+    private bool isReloading = false;
+    private bool isAiming = false;
 
-    private float nextTimeToFire = 0f;
+    private float lastAutoFireTime = 0f;
 
-    // ---------------------------------------------------------
-    // UNITY
-    // ---------------------------------------------------------
+    // NEW MAGAZINE SYSTEM
+    public MagazineItem currentMagazine;                 // Takılı şarjör
+    public List<MagazineItem> inventoryMags = new();     // Yedek şarjörler
+
+    // Reload Hold Detection
+    private float reloadPressTime;
+    public float reloadHoldThreshold = 0.4f;
+
     private void Awake()
     {
         audioSource = GetComponent<AudioSource>();
         animator = GetComponentInChildren<Animator>();
+
         controls = new PlayerControls();
 
         if (muzzleFlash != null)
@@ -66,141 +72,131 @@ public class PlayerWeapon : MonoBehaviour
             Debug.LogError("[PlayerWeapon] Slot Manager null!");
     }
 
+    // ============================
+    // INPUT SYSTEM ONENABLE / OFF
+    // ============================
     private void OnEnable()
     {
         controls.Gameplay.Enable();
 
-        controls.Gameplay.Shoot.performed += OnShootPerformed;
-        controls.Gameplay.Shoot.canceled += OnShootCanceled;
+        // Slot Switching
+        controls.Gameplay.Weapon1.performed += ctx => SwitchToSlot(0);
+        controls.Gameplay.Weapon2.performed += ctx => SwitchToSlot(1);
+        controls.Gameplay.Weapon3.performed += ctx => SwitchToSlot(2);
 
-        controls.Gameplay.Reload.performed += OnReload;
-
-        controls.Gameplay.Weapon1.performed += ctx => slotManager?.SwitchSlot(0);
-        controls.Gameplay.Weapon2.performed += ctx => slotManager?.SwitchSlot(1);
-        controls.Gameplay.Weapon3.performed += ctx => slotManager?.SwitchSlot(2);
-
-        controls.Gameplay.Melee.performed += OnMelee;
-
-        controls.Gameplay.ADS.performed += ctx => StartADS();
+        // ADS
+        controls.Gameplay.ADS.started += ctx => StartADS();
         controls.Gameplay.ADS.canceled += ctx => StopADS();
 
-        isReloading = false;
+        // Reload Hold Detection
+        controls.Gameplay.Reload.started += ctx =>
+        {
+            reloadPressTime = Time.time;
+        };
+
+        controls.Gameplay.Reload.canceled += ctx =>
+        {
+            float held = Time.time - reloadPressTime;
+
+            if (held >= reloadHoldThreshold)
+                StartCoroutine(MagCheck());
+            else
+                StartCoroutine(ReloadRoutine());
+        };
     }
 
     private void OnDisable()
     {
-        controls.Gameplay.Shoot.performed -= OnShootPerformed;
-        controls.Gameplay.Shoot.canceled -= OnShootCanceled;
-
-        controls.Gameplay.Reload.performed -= OnReload;
-        controls.Gameplay.Melee.performed -= OnMelee;
-
         controls.Gameplay.Disable();
     }
 
-    private void Update()
+    private void SwitchToSlot(int slot)
     {
-        Debug.Log($"held={isShootingHeld} auto={weaponData?.isAutomatic}");
-        if (weaponData == null) return;
-
-        // Otomatik ateş
-        if (weaponData.isAutomatic && isShootingHeld)
-            Shoot();
+        WeaponSlotManager.Instance.SwitchSlot(slot);
     }
 
-    // ---------------------------------------------------------
-    // INPUT EVENTS
-    // ---------------------------------------------------------
-    private void OnShootPerformed(InputAction.CallbackContext ctx)
+    // ============================
+    // SHOOT (NEW INPUT SYSTEM)
+    // ============================
+
+    private void HandleShootStart()
     {
-        if (weaponData == null) return;
-        isShootingHeld = true;
 
         if (!weaponData.isAutomatic)
             Shoot();
     }
 
-    private void OnShootCanceled(InputAction.CallbackContext ctx)
+
+    private void Update()
+{
+    if (PauseMenu.IsPaused || weaponData == null || isReloading)
+        return;
+
+    // 🔫 Tekli atış (semi-auto)
+    if (!weaponData.isAutomatic)
     {
-        if (weaponData == null) return;
-        isShootingHeld = false;
+        if (Input.GetMouseButtonDown(0))
+            Shoot();
     }
 
-    private void OnReload(InputAction.CallbackContext ctx)
+    // 🔥 Otomatik atış (auto)
+    if (weaponData.isAutomatic)
     {
-        if (isReloading || weaponData == null) return;
-        if (reserve <= 0 || clip >= clipSize) return;
+        if (Input.GetMouseButton(0))
+            AutoFire();
+    }
+}
 
-        StartCoroutine(Reload());
+
+    private void AutoFire()
+    {
+        float fireDelay = 1f / weaponData.fireRate;
+
+        if (Time.time - lastAutoFireTime >= fireDelay)
+        {
+            lastAutoFireTime = Time.time;
+            Shoot();
+        }
     }
 
-    private void OnMelee(InputAction.CallbackContext ctx)
-    {
-        if (!ctx.performed) return;
-        MeleeAttack();
-    }
-
-    // ---------------------------------------------------------
-    // SHOOTING
-    // ---------------------------------------------------------
+    // ============================
+    // ACTUAL SHOOT LOGIC
+    // ============================
     public void Shoot()
     {
-        if (PauseMenu.IsPaused || isReloading || Time.time < nextTimeToFire)
-            return;
+        if (isReloading) return;
 
-        if (weaponData == null)
+        if (currentMagazine == null || currentMagazine.currentAmmo <= 0)
         {
-            Debug.LogWarning("WeaponData NULL!");
+            PlayEmptyClipSound();
+            Debug.Log("Boş! Ateş yok.");
             return;
         }
 
-        if (weaponData.clipSize <= 0)
-        {
-            MeleeAttack();
-            return;
-        }
+        currentMagazine.currentAmmo--;
 
         RangedAttack();
+        Debug.Log($"Ateş edildi! Şarjör: {currentMagazine.currentAmmo}/{currentMagazine.capacity}");
     }
 
     private void RangedAttack()
     {
-        if (clip <= 0)
-        {
-            PlayEmptyClipSound();
-            return;
-        }
-
-        float cooldown =
-            weaponData.isShotgun ? weaponData.shotgunCooldown :
-            weaponData.isSniper ? weaponData.sniperCooldown :
-            (1f / weaponData.fireRate);
-
-        nextTimeToFire = Time.time + cooldown;
-
-        clip--;
-        SyncAmmoToSlot();
-
         if (shootSound != null)
             audioSource.PlayOneShot(shootSound);
 
-        if (animator != null)
-            animator.SetTrigger("Shoot");
+        animator?.SetTrigger("Shoot");
 
-        if (bulletPrefab != null && firePoint != null)
-        {
-            if (weaponData.isShotgun)
-                FireShotgunPellets();
-            else
-                FireSingleBullet();
+        if (weaponData.isShotgun)
+            FireShotgunPellets();
+        else
+            FireSingleBullet();
 
-            TryMuzzleFlash();
-        }
+        TryMuzzleFlash();
     }
 
     private void FireSingleBullet()
     {
-        GameObject bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
+        var bullet = Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
 
         if (bullet.TryGetComponent(out WeaponBullet b))
         {
@@ -223,7 +219,7 @@ public class PlayerWeapon : MonoBehaviour
             float angle = Mathf.Lerp(-spread, spread, t);
             Quaternion rot = firePoint.rotation * Quaternion.Euler(0, 0, angle);
 
-            GameObject bullet = Instantiate(bulletPrefab, firePoint.position, rot);
+            var bullet = Instantiate(bulletPrefab, firePoint.position, rot);
 
             if (bullet.TryGetComponent(out WeaponBullet b))
             {
@@ -236,9 +232,9 @@ public class PlayerWeapon : MonoBehaviour
         }
     }
 
-    // ---------------------------------------------------------
+    // ============================
     // ADS
-    // ---------------------------------------------------------
+    // ============================
     private void StartADS()
     {
         isAiming = true;
@@ -251,102 +247,73 @@ public class PlayerWeapon : MonoBehaviour
         animator?.SetBool("ADS", false);
     }
 
-    // ---------------------------------------------------------
-    // MELEE
-    // ---------------------------------------------------------
-    private void MeleeAttack()
+    // ============================
+    // RELOAD (SHORT OR LONG HOLD)
+    // ============================
+    private IEnumerator ReloadRoutine()
     {
-        nextTimeToFire = Time.time + (1f / weaponData.fireRate);
-        Physics2D.OverlapCircleAll(firePoint.position, weaponData.attackRange, enemyLayer);
-    }
+        if (isReloading) yield break;
 
-    // ---------------------------------------------------------
-    // RELOAD
-    // ---------------------------------------------------------
-    private IEnumerator Reload()
-    {
+        if (inventoryMags.Count == 0)
+        {
+            Debug.Log("Yedek şarjör yok.");
+            yield break;
+        }
+
         isReloading = true;
 
-        if (reloadSound != null)
-            audioSource.PlayOneShot(reloadSound);
-
+        audioSource.PlayOneShot(reloadSound);
         yield return new WaitForSeconds(weaponData.reloadTime);
 
-        int needed = clipSize - clip;
-        int loadAmount = Mathf.Min(needed, reserve);
+        // Eski şarjörü geri koy
+        if (currentMagazine != null)
+            inventoryMags.Add(currentMagazine);
 
-        clip += loadAmount;
-        reserve -= loadAmount;
+        // En dolu şarjörü bul
+        var nextMag = inventoryMags.OrderByDescending(m => m.currentAmmo).FirstOrDefault();
+        if (nextMag == null)
+        {
+            Debug.Log("Takılabilir şarjör yok!");
+            isReloading = false;
+            yield break;
+        }
 
-        SyncAmmoToSlot();
+        inventoryMags.Remove(nextMag);
+        currentMagazine = nextMag;
+
+        Debug.Log($"Yeni şarjör → {currentMagazine.currentAmmo}/{currentMagazine.capacity}");
 
         isReloading = false;
     }
 
-    // ---------------------------------------------------------
-    // SLOT / MODEL SYNC
-    // ---------------------------------------------------------
-    private void SyncAmmoToSlot()
+    // ============================
+    // MAGAZINE CHECK (HOLD R)
+    // ============================
+    IEnumerator MagCheck()
     {
-        slotManager?.SetAmmo(slotManager.activeSlotIndex, clip, reserve);
-    }
-
-    public void LoadFromSlot(int slot)
-    {
-        if (slotManager == null) return;
-
-        WeaponData data = slotManager.GetEquippedWeapon(slot);
-        if (data == null) return;
-
-        weaponData = data;
-
-        clipSize = weaponData.clipSize;
-
-        var ammo = slotManager.GetAmmo(slot);
-        clip = ammo.clip;
-        reserve = ammo.reserve;
-    }
-
-    public void SetWeapon(WeaponData data, int clipAmount, int reserveAmount)
-    {
-        isShootingHeld = false;
-        weaponData = data;
-        clipSize = data.clipSize;
-        clip = clipAmount;
-        reserve = reserveAmount;
-        isShootingHeld = false;
-
-        if (currentModel != null)
-            Destroy(currentModel);
-
-        if (weaponData.prefab != null)
+        if (currentMagazine == null)
         {
-            currentModel = Instantiate(weaponData.prefab, transform);
-            currentModel.transform.localPosition = Vector3.zero;
-            currentModel.transform.localRotation = Quaternion.identity;
+            Debug.Log("Şarjör takılı değil.");
+            yield break;
+        }
 
-            Transform fp = currentModel.transform.Find("FirePoint");
-            if (fp != null)
-                firePoint = fp;
-        }
-        else
-        {
-            Debug.LogError("Weapon prefab is NULL!");
-        }
+        yield return new WaitForSeconds(0.3f);
+
+        float ratio = (float)currentMagazine.currentAmmo / currentMagazine.capacity;
+
+        if (ratio == 1f) Debug.Log("Tam dolu.");
+        else if (ratio >= 0.7f) Debug.Log("Neredeyse dolu.");
+        else if (ratio >= 0.4f) Debug.Log("Yarısı dolu.");
+        else if (ratio > 0) Debug.Log("Az mermi kaldı.");
+        else Debug.Log("Tamamen boş.");
     }
-    public void ResetShootHold()
-{
-    isShootingHeld = false;
-}
 
-
-    // ---------------------------------------------------------
+    // ============================
     // MUZZLE FLASH
-    // ---------------------------------------------------------
+    // ============================
     private void TryMuzzleFlash()
     {
-        if (muzzleFlash == null || firePoint == null)
-            return;
+        if (muzzleFlash == null) return;
 
         muzzleFlash.transform.position = firePoint.position;
 
@@ -359,14 +326,13 @@ public class PlayerWeapon : MonoBehaviour
     private IEnumerator MuzzleFlashRoutine()
     {
         float original = muzzleFlash.intensity;
-
-        muzzleFlash.intensity = muzzleFlashIntensity;
         muzzleFlash.enabled = true;
+        muzzleFlash.intensity = muzzleFlashIntensity;
 
         yield return new WaitForSeconds(muzzleFlashDuration);
 
-        muzzleFlash.enabled = false;
         muzzleFlash.intensity = original;
+        muzzleFlash.enabled = false;
     }
 
     public void PlayEmptyClipSound()
@@ -374,4 +340,60 @@ public class PlayerWeapon : MonoBehaviour
         if (emptyClipSound != null)
             audioSource.PlayOneShot(emptyClipSound);
     }
+
+    // ============================
+    // SLOT / WEAPON LOAD
+    // ============================
+    public void LoadFromSlot(int slot)
+    {
+        var data = slotManager.GetEquippedWeapon(slot);
+        if (data == null) return;
+
+        weaponData = data;
+        lastAutoFireTime = 0f;
+        isReloading = false;
+
+        if (currentModel != null)
+            Destroy(currentModel);
+
+        if (weaponData.prefab != null)
+        {
+            currentModel = Instantiate(weaponData.prefab, transform);
+            Transform fp = currentModel.transform.Find("FirePoint");
+            if (fp != null)
+                firePoint = fp;
+        }
+    }
+
+    public void SetWeapon(WeaponData data)
+{
+    if (data == null)
+        return;
+
+    weaponData = data;
+
+    // Mevcut modeli sil
+    if (currentModel != null)
+        Destroy(currentModel);
+
+    // Yeni modeli oluştur
+    if (weaponData.prefab != null)
+    {
+        currentModel = Instantiate(weaponData.prefab, transform);
+        currentModel.transform.localPosition = Vector3.zero;
+        currentModel.transform.localRotation = Quaternion.identity;
+
+        // FirePoint'i bul
+        Transform fp = currentModel.transform.Find("FirePoint");
+        if (fp != null)
+            firePoint = fp;
+    }
+
+    // Şarjör sistemini sıfırla
+    currentMagazine = null;
+    inventoryMags.Clear();
+
+    Debug.Log($"[PlayerWeapon] Yeni silah takıldı → {weaponData.name}. Şarjörler sıfırlandı.");
+}
+
 }

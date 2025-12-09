@@ -192,9 +192,18 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""Shoot"",
+                    ""name"": ""Escape"",
                     ""type"": ""Button"",
-                    ""id"": ""5076013d-702c-4254-b927-6983d9995f1d"",
+                    ""id"": ""a6222bc1-fc83-4910-bbf0-61aa05be2863"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""CaravanWeapons"",
+                    ""type"": ""Button"",
+                    ""id"": ""072c6dd8-4e70-479c-8364-2ec14dac14cf"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -377,6 +386,28 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""Shoot"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a5d41ede-fbb9-496a-98f1-724efe8672eb"",
+                    ""path"": ""<Keyboard>/escape"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Escape"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""090b3cef-12ec-4282-8458-b134a6089e59"",
+                    ""path"": ""<Keyboard>/v"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CaravanWeapons"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -396,7 +427,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Gameplay_Weapon3 = m_Gameplay.FindAction("Weapon3", throwIfNotFound: true);
         m_Gameplay_Melee = m_Gameplay.FindAction("Melee", throwIfNotFound: true);
         m_Gameplay_ADS = m_Gameplay.FindAction("ADS", throwIfNotFound: true);
-        m_Gameplay_Shoot = m_Gameplay.FindAction("Shoot", throwIfNotFound: true);
+        m_Gameplay_Escape = m_Gameplay.FindAction("Escape", throwIfNotFound: true);
+        m_Gameplay_CaravanWeapons = m_Gameplay.FindAction("CaravanWeapons", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -488,7 +520,8 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_Weapon3;
     private readonly InputAction m_Gameplay_Melee;
     private readonly InputAction m_Gameplay_ADS;
-    private readonly InputAction m_Gameplay_Shoot;
+    private readonly InputAction m_Gameplay_Escape;
+    private readonly InputAction m_Gameplay_CaravanWeapons;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -545,9 +578,13 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @ADS => m_Wrapper.m_Gameplay_ADS;
         /// <summary>
-        /// Provides access to the underlying input action "Gameplay/Shoot".
+        /// Provides access to the underlying input action "Gameplay/Escape".
         /// </summary>
-        public InputAction @Shoot => m_Wrapper.m_Gameplay_Shoot;
+        public InputAction @Escape => m_Wrapper.m_Gameplay_Escape;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/CaravanWeapons".
+        /// </summary>
+        public InputAction @CaravanWeapons => m_Wrapper.m_Gameplay_CaravanWeapons;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -607,9 +644,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @ADS.started += instance.OnADS;
             @ADS.performed += instance.OnADS;
             @ADS.canceled += instance.OnADS;
-            @Shoot.started += instance.OnShoot;
-            @Shoot.performed += instance.OnShoot;
-            @Shoot.canceled += instance.OnShoot;
+            @Escape.started += instance.OnEscape;
+            @Escape.performed += instance.OnEscape;
+            @Escape.canceled += instance.OnEscape;
+            @CaravanWeapons.started += instance.OnCaravanWeapons;
+            @CaravanWeapons.performed += instance.OnCaravanWeapons;
+            @CaravanWeapons.canceled += instance.OnCaravanWeapons;
         }
 
         /// <summary>
@@ -654,9 +694,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @ADS.started -= instance.OnADS;
             @ADS.performed -= instance.OnADS;
             @ADS.canceled -= instance.OnADS;
-            @Shoot.started -= instance.OnShoot;
-            @Shoot.performed -= instance.OnShoot;
-            @Shoot.canceled -= instance.OnShoot;
+            @Escape.started -= instance.OnEscape;
+            @Escape.performed -= instance.OnEscape;
+            @Escape.canceled -= instance.OnEscape;
+            @CaravanWeapons.started -= instance.OnCaravanWeapons;
+            @CaravanWeapons.performed -= instance.OnCaravanWeapons;
+            @CaravanWeapons.canceled -= instance.OnCaravanWeapons;
         }
 
         /// <summary>
@@ -775,11 +818,18 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnADS(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Shoot" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "Escape" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnShoot(InputAction.CallbackContext context);
+        void OnEscape(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "CaravanWeapons" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnCaravanWeapons(InputAction.CallbackContext context);
     }
 }

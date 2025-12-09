@@ -106,9 +106,18 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Shoot",
+                    "name": "Escape",
                     "type": "Button",
-                    "id": "5076013d-702c-4254-b927-6983d9995f1d",
+                    "id": "a6222bc1-fc83-4910-bbf0-61aa05be2863",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "CaravanWeapons",
+                    "type": "Button",
+                    "id": "072c6dd8-4e70-479c-8364-2ec14dac14cf",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -289,6 +298,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "Shoot",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a5d41ede-fbb9-496a-98f1-724efe8672eb",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Escape",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "090b3cef-12ec-4282-8458-b134a6089e59",
+                    "path": "<Keyboard>/v",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CaravanWeapons",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

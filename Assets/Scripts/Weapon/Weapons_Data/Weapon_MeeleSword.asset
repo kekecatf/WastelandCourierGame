@@ -36,7 +36,7 @@ MonoBehaviour:
   isSniper: 0
   sniperCooldown: 3
   sniperPenetrationCount: 2
-  ammoType: 13
+  ammoType: 0
   isMolotov: 0
   fireEffectPrefab: {fileID: 0}
   explosionRadius: 2.5

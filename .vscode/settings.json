@@ -66,5 +66,5 @@
     "explorer.fileNesting.patterns": {
         "*.sln": "*.csproj"
     },
-    "dotnet.defaultSolution": "WastelandCourierGame.sln"
+    "dotnet.defaultSolution": "Wasteland-Courier.sln"
 }
