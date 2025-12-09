@@ -63,6 +63,17 @@ public static class SaveSystem
             data.inventory.Add(saved);
         }
 
+        // ---- Ammo Storage ----
+        data.ammoEntries.Clear();
+        foreach (var kvp in inventory.ammoStorage)
+        {
+            data.ammoEntries.Add(new AmmoEntry
+            {
+                ammoId = kvp.Key,
+                amount = kvp.Value
+            });
+        }
+
         // ---- Craft ile açılmış silahlar ----
         data.unlockedWeaponIDs.Clear();
         if (CraftingSystem.Instance != null)
@@ -156,6 +167,14 @@ public static class SaveSystem
             if (so == null) continue;
 
             inventory.TryAdd(so, item.amount);
+        }
+
+        // ---- Ammo Storage ----
+        inventory.ammoStorage.Clear();
+        foreach (var ammoEntry in data.ammoEntries)
+        {
+            if (string.IsNullOrEmpty(ammoEntry.ammoId) || ammoEntry.amount <= 0) continue;
+            inventory.ammoStorage[ammoEntry.ammoId] = ammoEntry.amount;
         }
 
         // ---- Craft ile açılmış silahlar ----

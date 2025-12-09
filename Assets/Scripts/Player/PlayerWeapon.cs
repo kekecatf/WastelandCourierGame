@@ -1,6 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering.Universal;
@@ -42,10 +40,6 @@ public class PlayerWeapon : MonoBehaviour
     private bool isAiming = false;
 
     private float lastAutoFireTime = 0f;
-
-    // NEW MAGAZINE SYSTEM
-    public MagazineItem currentMagazine;                 // Takılı şarjör
-    public List<MagazineItem> inventoryMags = new();     // Yedek şarjörler
 
     // Reload Hold Detection
     private float reloadPressTime;
@@ -166,17 +160,20 @@ public class PlayerWeapon : MonoBehaviour
     {
         if (isReloading) return;
 
-        if (currentMagazine == null || currentMagazine.currentAmmo <= 0)
+        int slot = slotManager != null ? slotManager.activeSlotIndex : 0;
+        var ammo = slotManager != null ? slotManager.GetAmmo(slot) : (clip: 0, reserve: 0);
+
+        if (ammo.clip <= 0)
         {
             PlayEmptyClipSound();
             Debug.Log("Boş! Ateş yok.");
             return;
         }
 
-        currentMagazine.currentAmmo--;
+        slotManager.SetAmmo(slot, ammo.clip - 1, ammo.reserve);
 
         RangedAttack();
-        Debug.Log($"Ateş edildi! Şarjör: {currentMagazine.currentAmmo}/{currentMagazine.capacity}");
+        Debug.Log($"Ateş edildi! Şarjör: {ammo.clip - 1}/{weaponData.clipSize}");
     }
 
     private void RangedAttack()
@@ -254,9 +251,30 @@ public class PlayerWeapon : MonoBehaviour
     {
         if (isReloading) yield break;
 
-        if (inventoryMags.Count == 0)
+        int slot = slotManager != null ? slotManager.activeSlotIndex : 0;
+        var ammo = slotManager != null ? slotManager.GetAmmo(slot) : (clip: 0, reserve: 0);
+
+        int needed = weaponData.clipSize - ammo.clip;
+        if (needed <= 0)
+            yield break;
+
+        string ammoType = weaponData.ammoType.ToString();
+        Inventory inv = Inventory.Instance;
+
+        // Rezervi doldurmak için envanterden çek
+        if (inv != null && ammo.reserve < needed)
         {
-            Debug.Log("Yedek şarjör yok.");
+            int maxReserveSpace = weaponData.maxAmmoCapacity - ammo.reserve;
+            int takeFromInv = Mathf.Min(maxReserveSpace, inv.GetAmmoAmount(ammoType));
+            if (takeFromInv > 0 && inv.TryUseAmmo(ammoType, takeFromInv))
+            {
+                ammo.reserve += takeFromInv;
+            }
+        }
+
+        if (ammo.reserve <= 0)
+        {
+            Debug.Log("Yedek mermi yok.");
             yield break;
         }
 
@@ -265,23 +283,10 @@ public class PlayerWeapon : MonoBehaviour
         audioSource.PlayOneShot(reloadSound);
         yield return new WaitForSeconds(weaponData.reloadTime);
 
-        // Eski şarjörü geri koy
-        if (currentMagazine != null)
-            inventoryMags.Add(currentMagazine);
+        int load = Mathf.Min(needed, ammo.reserve);
+        slotManager.SetAmmo(slot, ammo.clip + load, ammo.reserve - load);
 
-        // En dolu şarjörü bul
-        var nextMag = inventoryMags.OrderByDescending(m => m.currentAmmo).FirstOrDefault();
-        if (nextMag == null)
-        {
-            Debug.Log("Takılabilir şarjör yok!");
-            isReloading = false;
-            yield break;
-        }
-
-        inventoryMags.Remove(nextMag);
-        currentMagazine = nextMag;
-
-        Debug.Log($"Yeni şarjör → {currentMagazine.currentAmmo}/{currentMagazine.capacity}");
+        Debug.Log($"Şarjör yenilendi → {ammo.clip + load}/{weaponData.clipSize} | Rezerv: {ammo.reserve - load}");
 
         isReloading = false;
     }
@@ -291,21 +296,14 @@ public class PlayerWeapon : MonoBehaviour
     // ============================
     IEnumerator MagCheck()
     {
-        if (currentMagazine == null)
-        {
-            Debug.Log("Şarjör takılı değil.");
-            yield break;
-        }
-
         yield return new WaitForSeconds(0.3f);
 
-        float ratio = (float)currentMagazine.currentAmmo / currentMagazine.capacity;
+        int slot = slotManager != null ? slotManager.activeSlotIndex : 0;
+        var ammo = slotManager != null ? slotManager.GetAmmo(slot) : (clip: 0, reserve: 0);
+        string ammoType = weaponData != null ? weaponData.ammoType.ToString() : "";
+        int stored = Inventory.Instance != null ? Inventory.Instance.GetAmmoAmount(ammoType) : 0;
 
-        if (ratio == 1f) Debug.Log("Tam dolu.");
-        else if (ratio >= 0.7f) Debug.Log("Neredeyse dolu.");
-        else if (ratio >= 0.4f) Debug.Log("Yarısı dolu.");
-        else if (ratio > 0) Debug.Log("Az mermi kaldı.");
-        else Debug.Log("Tamamen boş.");
+        Debug.Log($"Mermi Bilgisi → Şarjör: {ammo.clip}/{weaponData.clipSize}, Rezerv: {ammo.reserve}, Envanter: {stored}");
     }
 
     // ============================
@@ -366,34 +364,26 @@ public class PlayerWeapon : MonoBehaviour
     }
 
     public void SetWeapon(WeaponData data)
-{
-    if (data == null)
-        return;
-
-    weaponData = data;
-
-    // Mevcut modeli sil
-    if (currentModel != null)
-        Destroy(currentModel);
-
-    // Yeni modeli oluştur
-    if (weaponData.prefab != null)
     {
-        currentModel = Instantiate(weaponData.prefab, transform);
-        currentModel.transform.localPosition = Vector3.zero;
-        currentModel.transform.localRotation = Quaternion.identity;
+        if (data == null)
+            return;
 
-        // FirePoint'i bul
-        Transform fp = currentModel.transform.Find("FirePoint");
-        if (fp != null)
-            firePoint = fp;
+        weaponData = data;
+
+        if (currentModel != null)
+            Destroy(currentModel);
+
+        if (weaponData.prefab != null)
+        {
+            currentModel = Instantiate(weaponData.prefab, transform);
+            currentModel.transform.localPosition = Vector3.zero;
+            currentModel.transform.localRotation = Quaternion.identity;
+
+            Transform fp = currentModel.transform.Find("FirePoint");
+            if (fp != null)
+                firePoint = fp;
+        }
+
+        Debug.Log($"[PlayerWeapon] Yeni silah takıldı → {weaponData.name}.");
     }
-
-    // Şarjör sistemini sıfırla
-    currentMagazine = null;
-    inventoryMags.Clear();
-
-    Debug.Log($"[PlayerWeapon] Yeni silah takıldı → {weaponData.name}. Şarjörler sıfırlandı.");
-}
-
 }
