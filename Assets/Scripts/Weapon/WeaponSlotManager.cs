@@ -99,8 +99,7 @@ public class WeaponSlotManager : MonoBehaviour
         int slot = (int)GetSlotForWeapon(weapon);
         slots[slot] = weapon;
 
-        clip[slot] = weapon.clipSize;
-        reserve[slot] = weapon.maxAmmoCapacity;
+        InitializeAmmoFromInventory(weapon, slot);
 
         ApplyToHandler(slot);
 
@@ -187,6 +186,56 @@ public class WeaponSlotManager : MonoBehaviour
         }
     }
 
+    private void InitializeAmmoFromInventory(WeaponData weapon, int slot)
+    {
+        if (weapon == null)
+        {
+            clip[slot] = 0;
+            reserve[slot] = 0;
+            return;
+        }
+
+        string ammoType = weapon.ammoType.ToString();
+        Inventory inv = Inventory.Instance;
+
+        if (inv == null || string.IsNullOrEmpty(ammoType))
+        {
+            clip[slot] = 0;
+            reserve[slot] = 0;
+            return;
+        }
+
+        int available = inv.GetAmmoAmount(ammoType);
+        int loadClip = Mathf.Min(weapon.clipSize, available);
+        if (loadClip > 0) inv.TryUseAmmo(ammoType, loadClip);
+
+        available -= loadClip;
+        int loadReserve = Mathf.Min(weapon.maxAmmoCapacity - loadClip, available);
+        if (loadReserve > 0) inv.TryUseAmmo(ammoType, loadReserve);
+
+        clip[slot] = loadClip;
+        reserve[slot] = loadReserve;
+    }
+
+    private void ReturnAmmoToInventory(int slot, WeaponData weapon)
+    {
+        if (weapon == null || Inventory.Instance == null)
+            return;
+
+        string ammoType = weapon.ammoType.ToString();
+        if (string.IsNullOrEmpty(ammoType))
+            return;
+
+        if (clip.Length > slot)
+            Inventory.Instance.AddAmmo(ammoType, clip[slot]);
+
+        if (reserve.Length > slot)
+            Inventory.Instance.AddAmmo(ammoType, reserve[slot]);
+
+        clip[slot] = 0;
+        reserve[slot] = 0;
+    }
+
     // -------------------------------
     // Save/Load için Getter
     // -------------------------------
@@ -205,6 +254,7 @@ public class WeaponSlotManager : MonoBehaviour
     WeaponData oldWeapon = slots[slot];
     if (oldWeapon != null)
     {
+        ReturnAmmoToInventory(slot, oldWeapon);
         CaravanInventory.Instance.StoreWeapon(oldWeapon);
         Debug.Log("Eski silah karavana gönderildi: " + oldWeapon.itemName);
     }
@@ -212,9 +262,8 @@ public class WeaponSlotManager : MonoBehaviour
     // 2) Yeni silah slota ekle
     slots[slot] = newWeapon;
 
-    // 3) Mermi bilgilerini sıfırla
-    clip[slot] = newWeapon.clipSize;
-    reserve[slot] = newWeapon.maxAmmoCapacity;
+    // 3) Mermi bilgilerini envanterden yükle
+    InitializeAmmoFromInventory(newWeapon, slot);
 
     // 4) Eğer aktif slot buysa hemen güncelle
     if (activeSlotIndex == slot)

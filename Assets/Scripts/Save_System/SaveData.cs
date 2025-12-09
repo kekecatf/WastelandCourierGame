@@ -19,6 +19,9 @@ public class SaveData
     public List<InventoryItemData> inventory = new();
     public List<string> unlockedWeaponIDs = new();
 
+    // Ammo storage snapshot
+    public List<AmmoEntry> ammoEntries = new();
+
     public string[] equippedWeaponIDs = new string[3];
     public int[] slotClip = new int[3];
     public int[] slotReserve = new int[3];
@@ -32,5 +35,12 @@ public class SaveData
 public class InventoryItemData
 {
     public string itemID;
+    public int amount;
+}
+
+[System.Serializable]
+public class AmmoEntry
+{
+    public string ammoId;
     public int amount;
 }
